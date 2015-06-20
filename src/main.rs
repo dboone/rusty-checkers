@@ -1,4 +1,8 @@
-use std::ops::Deref;
+// CHECKERS
+mod checkers {
+
+// PIECE
+mod piece {
 
 pub trait Piece {
 }
@@ -12,6 +16,14 @@ pub struct KingPiece;
 
 impl Piece for KingPiece {
 }
+
+}
+
+// TILE
+mod tile {
+
+use std::ops::Deref;
+use checkers::piece::Piece;
 
 pub trait Tile {
     fn get_piece(&self) -> Option<&Piece>;
@@ -29,11 +41,25 @@ pub struct OccupiedTile {
     piece : Box<Piece>
 }
 
+impl OccupiedTile {
+    pub fn new( piece : Box<Piece> ) -> OccupiedTile {
+        OccupiedTile {
+            piece : piece
+        } 
+    }
+}
+
 impl Tile for OccupiedTile {
     fn get_piece(&self) -> Option<&Piece> {
        Option::Some(self.piece.deref())
     }
 }
+
+}
+
+use std::ops::Deref;
+pub use checkers::piece::*;
+pub use checkers::tile::*;
 
 pub struct Board {
     number_rows : usize,
@@ -89,10 +115,7 @@ impl Board {
             let tile : Box<Tile> = if t % 2 == 1 {
                 Box::new(EmptyTile)
             } else {
-                let piece = ManPiece;
-                Box::new(
-                    OccupiedTile { piece : Box::new(piece) }
-                )
+                Box::new(OccupiedTile::new(Box::new(ManPiece)))
             };
             board.tiles.push(tile);
         }
@@ -103,10 +126,7 @@ impl Board {
             let tile : Box<Tile> = if t % 2 == 0 {
                 Box::new(EmptyTile)
             } else {
-                let piece = ManPiece;
-                Box::new(
-                    OccupiedTile { piece : Box::new(piece) }
-                )
+                Box::new(OccupiedTile::new(Box::new(ManPiece)))
             };
             board.tiles.push(tile);
         }
@@ -118,6 +138,10 @@ impl Board {
         }
     }
 }
+
+}
+
+use checkers::Board;
 
 fn main() {
     println!("Welcome to Draughts!");
