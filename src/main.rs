@@ -59,14 +59,69 @@ impl Board {
         board
     }
 
+    fn new_checkerboard() -> Board {
+       let mut board = Board {
+            number_rows : CHECKERBOARD_SIZE,
+            number_columns : CHECKERBOARD_SIZE,    	   
+            tiles : Vec::with_capacity(CHECKERS_NUMBER_TILES)
+        };
+
+        Board::fill_odd_row( &mut board );
+        Board::fill_even_row( &mut board );
+        Board::fill_odd_row( &mut board );
+
+        Board::fill_empty_row( &mut board );
+        Board::fill_empty_row( &mut board );
+
+        Board::fill_even_row( &mut board );
+        Board::fill_odd_row( &mut board );
+        Board::fill_even_row( &mut board );
+
+        board
+    }    
+
     fn get_tile(&self, row : usize, column : usize) -> &Tile {
         self.tiles[ row + self.number_rows * column ].deref()
+    }
+
+    fn fill_even_row(board : &mut Board) {
+        for t in 0..CHECKERBOARD_SIZE {
+            if t % 2 == 1 {
+                board.tiles.push(Box::new(EmptyTile));
+            } else {
+                let piece = ManPiece;
+                let tile = OccupiedTile { 
+                    piece : Box::new(piece)
+                };
+                board.tiles.push(Box::new(tile));
+            }
+        }
+    }
+
+    fn fill_odd_row(board : &mut Board) {
+        for t in 0..CHECKERBOARD_SIZE {
+            if t % 2 == 0 {
+                board.tiles.push(Box::new(EmptyTile));
+            } else {
+                let piece = ManPiece;
+                let tile = OccupiedTile { 
+                    piece : Box::new(piece)
+                };
+                board.tiles.push(Box::new(tile));
+            }
+        }
+    }
+
+    fn fill_empty_row(board : &mut Board) {
+        for t in 0..CHECKERBOARD_SIZE {
+            board.tiles.push(Box::new(EmptyTile));
+        }
     }
 }
 
 fn main() {
     println!("Welcome to Draughts!");
 
-    let board = Board::new();
+    let board = Board::new_checkerboard();
     let tile = board.get_tile(0, 0);    
 }
