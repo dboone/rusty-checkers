@@ -45,7 +45,7 @@ const CHECKERBOARD_SIZE : usize = 8;
 const CHECKERS_NUMBER_TILES : usize = CHECKERBOARD_SIZE * CHECKERBOARD_SIZE;
 
 impl Board {
-    fn new() -> Board {
+    pub fn new() -> Board {
         let mut board = Board {
             number_rows : CHECKERBOARD_SIZE,
             number_columns : CHECKERBOARD_SIZE,
@@ -59,7 +59,7 @@ impl Board {
         board
     }
 
-    fn new_checkerboard() -> Board {
+    pub fn new_checkerboard() -> Board {
        let mut board = Board {
             number_rows : CHECKERBOARD_SIZE,
             number_columns : CHECKERBOARD_SIZE,    	   
@@ -80,7 +80,7 @@ impl Board {
         board
     }    
 
-    fn get_tile(&self, row : usize, column : usize) -> &Tile {
+    pub fn get_tile(&self, row : usize, column : usize) -> &Tile {
         self.tiles[ row + self.number_rows * column ].deref()
     }
 
