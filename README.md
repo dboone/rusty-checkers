@@ -1,5 +1,7 @@
 # rusty-checkers
 
+<img src="https://travis-ci.org/dboone/rusty-checkers.svg"/>
+
 Checkers game implemented in Rust.
 
 ## Implementation
