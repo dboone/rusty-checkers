@@ -1,6 +1,6 @@
 # rusty-checkers
 
-<img src="https://travis-ci.org/dboone/rusty-checkers.svg"/>
+<a href="https://travis-ci.org/dboone/rusty-checkers"><img src="https://travis-ci.org/dboone/rusty-checkers.svg"/></a>
 
 Checkers game implemented in Rust.
 
