@@ -57,10 +57,10 @@ impl Board {
 
     fn fill_even_row(board : &mut Board) {
         for t in 0..CHECKERBOARD_SIZE {
-            let tile : Box<Tile> = if t % 2 == 1 {
-                Box::new(EmptyTile)
-            } else {
+            let tile : Box<Tile> = if t % 2 == 0 {
                 Box::new(OccupiedTile::new(Box::new(ManPiece)))
+            } else {
+                Box::new(EmptyTile)
             };
             board.tiles.push(tile);
         }
@@ -68,10 +68,10 @@ impl Board {
 
     fn fill_odd_row(board : &mut Board) {
         for t in 0..CHECKERBOARD_SIZE {
-            let tile : Box<Tile> = if t % 2 == 0 {
-                Box::new(EmptyTile)
-            } else {
+            let tile : Box<Tile> = if t % 2 == 1 {
                 Box::new(OccupiedTile::new(Box::new(ManPiece)))
+            } else {
+                Box::new(EmptyTile)
             };
             board.tiles.push(tile);
         }
