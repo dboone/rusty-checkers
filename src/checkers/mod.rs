@@ -16,6 +16,8 @@ pub struct Board {
     tiles : Vec<Box<Tile>>
 }
 
+const BOARD_SIZE : usize = 10;
+const BOARD_NUMBER_TILES : usize = BOARD_SIZE * BOARD_SIZE;
 const CHECKERBOARD_SIZE : usize = 8;
 const CHECKERS_NUMBER_TILES : usize = CHECKERBOARD_SIZE * CHECKERBOARD_SIZE;
 
@@ -102,7 +104,7 @@ impl Board {
 	}
 
     fn fill_even_row(board : &mut Board, player : &Player) {
-        for t in 0..CHECKERBOARD_SIZE {
+        for t in 0..board.number_columns {
             let tile : Box<Tile> = if t % 2 == 0 {
 				let piece = ManPiece::new(player);
                 Box::new(OccupiedTile::new(Box::new(piece)))
@@ -114,7 +116,7 @@ impl Board {
     }
 
     fn fill_odd_row(board : &mut Board, player : &Player) {
-        for t in 0..CHECKERBOARD_SIZE {
+        for t in 0..board.number_columns {
             let tile : Box<Tile> = if t % 2 == 1 {
 				let piece = ManPiece::new(player);
                 Box::new(OccupiedTile::new(Box::new(piece)))
@@ -126,7 +128,7 @@ impl Board {
     }
 
     fn fill_empty_row(board : &mut Board) {
-        for _ in 0..CHECKERBOARD_SIZE {
+        for _ in 0..board.number_columns {
             board.tiles.push(Box::new(EmptyTile));
         }
     }
