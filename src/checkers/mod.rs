@@ -4,7 +4,7 @@ pub use checkers::player::Player;
 mod piece;
 pub use checkers::piece::*;
 
-mod tile;
+pub mod tile;
 pub use checkers::tile::*;
 
 mod ai;
@@ -126,7 +126,7 @@ impl Board {
     }
 
     fn fill_empty_row(board : &mut Board) {
-        for t in 0..CHECKERBOARD_SIZE {
+        for _ in 0..CHECKERBOARD_SIZE {
             board.tiles.push(Box::new(EmptyTile));
         }
     }
