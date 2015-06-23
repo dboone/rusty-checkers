@@ -1,3 +1,6 @@
+mod player;
+pub use checkers::player::Player;
+
 mod piece;
 pub use checkers::piece::*;
 
