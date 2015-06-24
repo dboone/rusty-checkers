@@ -17,7 +17,8 @@ fn print_justified_file<TWrite : Write>(writer : &mut TWrite, columns : usize, p
     }
 
     for c in 0..columns {
-        let file = char::from_u32('A' as u32 + c as u32).unwrap();
+        let initial_file = 'A' as u32;
+        let file = char::from_u32(initial_file + c as u32).unwrap();
         try!(write!(writer, " {} ", file));
     }
 
@@ -41,10 +42,10 @@ fn print_board<TWrite : Write>(writer : &mut TWrite, board : &Board) -> Result<(
     let file_padding = board.number_columns().to_string().len();
     let rank_padding = board.number_rows().to_string().len();
 
-    print_justified_file(writer, board.number_columns(), file_padding).unwrap();
+    try!(print_justified_file(writer, board.number_columns(), file_padding));
 
 	for c in 0..board.number_columns() {
-        print_justified_rank(writer, c + 1, rank_padding).unwrap();
+        try!(print_justified_rank(writer, c + 1, rank_padding));
 		for r in 0..board.number_rows() {
 			let tile = board.get_tile(r, c);
 			let piece_str = match tile.get_piece() {
@@ -57,7 +58,7 @@ fn print_board<TWrite : Write>(writer : &mut TWrite, board : &Board) -> Result<(
 		try!(writeln!(writer, " {} ", c + 1));
 	}
 
-    print_justified_file(writer, board.number_columns(), file_padding).unwrap();	
+    try!(print_justified_file(writer, board.number_columns(), file_padding));
 	Ok(())
 }
 
