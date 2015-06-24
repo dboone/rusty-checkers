@@ -11,11 +11,14 @@ use checkers::Player;
 const EMPTY_PIECE_STR : &'static str = " ";
 const OCCUPIED_PIECE_STR : &'static str = "O";
 
-fn print_file<TWrite : Write>(writer : &mut TWrite, columns : usize) -> Result<(), std::io::Error> {
-    try!(write!(writer, "  "));
+fn print_justified_file<TWrite : Write>(writer : &mut TWrite, columns : usize, padding : usize) -> Result<(), std::io::Error> {
+    for _ in 0..padding + 1 {
+        try!(write!(writer, " "));
+    }
 
     for c in 0..columns {
-        try!(write!(writer, " {} ", char::from_u32(65 + c as u32).unwrap()));
+        let file = char::from_u32('A' as u32 + c as u32).unwrap();
+        try!(write!(writer, " {} ", file));
     }
 
     try!(writeln!(writer, ""));
@@ -23,22 +26,25 @@ fn print_file<TWrite : Write>(writer : &mut TWrite, columns : usize) -> Result<(
     Ok(())
 }
 
-fn print_justified_rank<TWrite : Write>(writer : &mut TWrite, rank : usize, rows : usize) -> Result<(), std::io::Error> {
-    let cur_width = rank.to_string().len();
-    let max_width = rows.to_string().len();
+fn print_justified_rank<TWrite : Write>(writer : &mut TWrite, rank : usize, padding : usize) -> Result<(), std::io::Error> {
+    let cur_rank = rank.to_string();
 
-    for _ in 0..max_width - cur_width {
+    for _ in 0..padding - cur_rank.len() {
         try!(write!(writer, " "));
     }
-    try!(write!(writer, "{} ", rank));
+    try!(write!(writer, "{} ", cur_rank));
 
     Ok(())
 }
 
 fn print_board<TWrite : Write>(writer : &mut TWrite, board : &Board) -> Result<(), std::io::Error> {
-    print_file(writer, board.number_columns()).unwrap();
+    let file_padding = board.number_columns().to_string().len();
+    let rank_padding = board.number_rows().to_string().len();
+
+    print_justified_file(writer, board.number_columns(), file_padding).unwrap();
+
 	for c in 0..board.number_columns() {
-        print_justified_rank(writer, c + 1, board.number_rows()).unwrap();
+        print_justified_rank(writer, c + 1, rank_padding).unwrap();
 		for r in 0..board.number_rows() {
 			let tile = board.get_tile(r, c);
 			let piece_str = match tile.get_piece() {
@@ -51,7 +57,7 @@ fn print_board<TWrite : Write>(writer : &mut TWrite, board : &Board) -> Result<(
 		try!(writeln!(writer, " {} ", c + 1));
 	}
 
-    print_file(writer, board.number_columns()).unwrap();	
+    print_justified_file(writer, board.number_columns(), file_padding).unwrap();	
 	Ok(())
 }
 
