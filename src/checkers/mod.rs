@@ -7,8 +7,6 @@ pub use checkers::piece::*;
 mod tile;
 pub use checkers::tile::*;
 
-use std::ops::Deref;
-
 pub struct Board {
     number_rows : usize,
     number_columns : usize,
@@ -58,9 +56,38 @@ impl Board {
         board
     }
 
+	fn indices_to_index(&self, row : usize, column : usize) -> usize {
+        row + self.number_rows * column
+	}
+	
     pub fn get_tile(&self, row : usize, column : usize) -> &Tile {
-        self.tiles[ row + self.number_rows * column ].deref()
+        let idx = self.indices_to_index(row, column);
+        &*self.tiles[idx]
     }
+
+	pub fn set_tile(
+			&mut self,
+			row : usize,
+			column : usize,
+			tile : Box<Tile>) {
+        let idx = self.indices_to_index(row, column);
+        self.tiles[idx] = tile;
+	}
+
+	pub fn clear_tile(&mut self, row : usize, column : usize) {
+		self.set_tile(row, column, Box::new(EmptyTile));
+	}
+
+	pub fn swap_tiles(
+			&mut self,
+			row1 : usize,
+			column1 : usize,
+			row2 : usize,
+			column2 : usize) {
+        let idx1 = self.indices_to_index(row1, column1);
+        let idx2 = self.indices_to_index(row2, column2);
+		self.tiles.swap(idx1, idx2);
+	}
 
     fn fill_even_row(board : &mut Board, player : &Player) {
         for t in 0..CHECKERBOARD_SIZE {
