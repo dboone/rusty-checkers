@@ -17,14 +17,15 @@ const CHECKERBOARD_SIZE : usize = 8;
 const CHECKERS_NUMBER_TILES : usize = CHECKERBOARD_SIZE * CHECKERBOARD_SIZE;
 
 impl Board {
-    pub fn new() -> Board {
+    pub fn new(number_rows : usize, number_columns : usize) -> Board {
+		let number_tiles = number_rows * number_columns;
         let mut board = Board {
-            number_rows : CHECKERBOARD_SIZE,
-            number_columns : CHECKERBOARD_SIZE,
-            tiles : Vec::with_capacity(CHECKERS_NUMBER_TILES)
+            number_rows : number_rows,
+            number_columns : number_columns,
+            tiles : Vec::with_capacity(number_tiles)
         };
 
-        for _ in 0..CHECKERS_NUMBER_TILES {
+        for _ in 0..number_tiles {
             board.tiles.push(Box::new(EmptyTile));
         }
 
