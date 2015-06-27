@@ -7,6 +7,9 @@ pub use checkers::piece::*;
 mod tile;
 pub use checkers::tile::*;
 
+mod ai;
+pub use checkers::ai::*;
+
 pub struct Board {
     number_rows : usize,
     number_columns : usize,

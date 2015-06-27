@@ -7,6 +7,8 @@ pub enum Direction {
 }
 
 // A move from one tile to an adjacent diagonal one
+#[derive(Debug)]
+#[derive(PartialEq, Eq)]
 pub struct SimpleMove {
 	to_row : usize,
 	to_col : usize
@@ -152,7 +154,7 @@ fn is_offset_value_in_range
 -> bool {
 	match *value_offset {
 	TileOffset::Negative(magnitude) => start_value >= magnitude,
-	TileOffset::Positive(magnitude) => start_value <= max_value - magnitude
+	TileOffset::Positive(magnitude) => start_value + magnitude <= max_value
 	}
 }
 
@@ -249,4 +251,265 @@ fn is_offset_value_in_range_valid_negative_offset() {
 fn is_offset_value_in_range_invalid_negative_offset() {
 	let offset = TileOffset::Negative(2);
 	assert!(!is_offset_value_in_range(1, 7, &offset));
+}
+
+#[cfg(test)]
+mod test {
+
+mod simple_move {
+
+mod man_piece {
+
+use super::super::super::*;
+use checkers::Board;
+use checkers::ManPiece;
+use checkers::OccupiedTile;
+use checkers::Player;
+
+#[test]
+fn no_moves_with_single_tile_board() {
+	let board = Board::new(1, 1);
+	let result = find_simple_moves_for_man(
+		&board, Direction::IncreasingRank, 0, 0);
+	assert_eq!(Vec::<SimpleMove>::new(), result);
+}
+
+#[test]
+fn no_moves_when_min_rank_and_decreasing_rank() {
+	let board = Board::new(8, 8);
+	let result = find_simple_moves_for_man(
+		&board, Direction::DecreasingRank, 7, 4);
+	assert_eq!(Vec::<SimpleMove>::new(), result);
+}
+
+#[test]
+fn no_moves_when_max_rank_and_increasing_rank() {
+	let board = Board::new(8, 8);
+	let result = find_simple_moves_for_man(
+		&board, Direction::IncreasingRank, 0, 4);
+	assert_eq!(Vec::<SimpleMove>::new(), result);
+}
+
+#[test]
+fn single_move_when_min_file() {
+	let board = Board::new(8, 8);
+	let result = find_simple_moves_for_man(
+		&board, Direction::IncreasingRank, 4, 0);
+	assert_eq!(
+		vec![SimpleMove{to_row : 3, to_col : 1}],
+		result);
+}
+
+#[test]
+fn single_move_when_max_file() {
+	let board = Board::new(8, 8);
+	let result = find_simple_moves_for_man(
+		&board, Direction::DecreasingRank, 3, 7);
+	assert_eq!(
+		vec![SimpleMove{to_row : 4, to_col : 6}],
+		result);
+}
+
+#[test]
+fn two_moves_when_middle_of_board_1() {
+	let board = Board::new(8, 8);
+	let result = find_simple_moves_for_man(
+		&board, Direction::DecreasingRank, 3, 5);
+	assert_eq!(
+		vec![
+			SimpleMove{to_row : 4, to_col : 4},
+			SimpleMove{to_row : 4, to_col : 6}],
+		result);
+}
+
+#[test]
+fn two_moves_when_middle_of_board_2() {
+	let board = Board::new(8, 8);
+	let result = find_simple_moves_for_man(
+		&board, Direction::IncreasingRank, 1, 2);
+	assert_eq!(
+		vec![
+			SimpleMove{to_row : 0, to_col : 1},
+			SimpleMove{to_row : 0, to_col : 3}],
+		result);
+}
+
+#[test]
+fn move_blocked_when_tile_occupied_1() {
+	let mut board = Board::new(8, 8);
+	let player = Player{ id : 0};
+	let piece = ManPiece::new(&player);
+	let tile = OccupiedTile::new(Box::new(piece));
+	board.set_tile(3, 3, Box::new(tile));
+	
+	let result = find_simple_moves_for_man(
+		&board, Direction::IncreasingRank, 4, 4);
+	assert_eq!(
+		vec![SimpleMove{to_row : 3, to_col : 5}],
+		result);
+}
+
+#[test]
+fn move_blocked_when_tile_occupied_2() {
+	let mut board = Board::new(8, 8);
+	let player = Player{ id : 0};
+	let piece = ManPiece::new(&player);
+	let tile = OccupiedTile::new(Box::new(piece));
+	board.set_tile(3, 5, Box::new(tile));
+	
+	let result = find_simple_moves_for_man(
+		&board, Direction::IncreasingRank, 4, 4);
+	assert_eq!(
+		vec![SimpleMove{to_row : 3, to_col : 3}],
+		result);
+}
+
+}
+
+mod king_piece {
+
+use super::super::super::*;
+use checkers::Board;
+use checkers::ManPiece;
+use checkers::OccupiedTile;
+use checkers::Player;
+
+#[test]
+fn single_tile_board_has_no_moves() {
+	let board = Board::new(1, 1);
+	let result = find_simple_moves_for_king(
+		&board, 0, 0);
+	assert_eq!(Vec::<SimpleMove>::new(), result);
+}
+
+#[test]
+fn single_move_when_min_rank_and_min_file() {
+	let board = Board::new(8, 8);
+	let result = find_simple_moves_for_king(
+		&board, 7, 0);
+	assert_eq!(
+		vec![SimpleMove{to_row : 6, to_col : 1}],
+		result);
+}
+
+#[test]
+fn single_move_when_min_rank_and_max_file() {
+	let board = Board::new(8, 8);
+	let result = find_simple_moves_for_king(
+		&board, 7, 7);
+	assert_eq!(
+		vec![SimpleMove{to_row : 6, to_col : 6}],
+		result);
+}
+
+#[test]
+fn single_move_when_max_rank_and_min_file() {
+	let board = Board::new(8, 8);
+	let result = find_simple_moves_for_king(
+		&board, 0, 0);
+	assert_eq!(
+		vec![SimpleMove{to_row : 1, to_col : 1}],
+		result);
+}
+
+#[test]
+fn single_move_when_max_rank_and_max_file() {
+	let board = Board::new(8, 8);
+	let result = find_simple_moves_for_king(
+		&board, 0, 7);
+	assert_eq!(
+		vec![SimpleMove{to_row : 1, to_col : 6}],
+		result);
+}
+
+#[test]
+fn four_moves_when_middle_of_board() {
+	let board = Board::new(8, 8);
+	let result = find_simple_moves_for_king(
+		&board, 3, 5);
+	assert_eq!(
+		vec![
+			SimpleMove{to_row : 2, to_col : 4},
+			SimpleMove{to_row : 2, to_col : 6},
+			SimpleMove{to_row : 4, to_col : 4},
+			SimpleMove{to_row : 4, to_col : 6}],
+		result);
+}
+
+#[test]
+fn move_blocked_when_tile_occupied_1() {
+	let mut board = Board::new(8, 8);
+	let player = Player{ id : 0};
+	let piece = ManPiece::new(&player);
+	let tile = OccupiedTile::new(Box::new(piece));
+	board.set_tile(2, 4, Box::new(tile));
+	
+	let result = find_simple_moves_for_king(
+		&board, 3, 5);
+	assert_eq!(
+		vec![
+			SimpleMove{to_row : 2, to_col : 6},
+			SimpleMove{to_row : 4, to_col : 4},
+			SimpleMove{to_row : 4, to_col : 6}],
+		result);
+}
+
+#[test]
+fn move_blocked_when_tile_occupied_2() {
+	let mut board = Board::new(8, 8);
+	let player = Player{ id : 0};
+	let piece = ManPiece::new(&player);
+	let tile = OccupiedTile::new(Box::new(piece));
+	board.set_tile(2, 6, Box::new(tile));
+	
+	let result = find_simple_moves_for_king(
+		&board, 3, 5);
+	assert_eq!(
+		vec![
+			SimpleMove{to_row : 2, to_col : 4},
+			SimpleMove{to_row : 4, to_col : 4},
+			SimpleMove{to_row : 4, to_col : 6}],
+		result);
+}
+
+#[test]
+fn move_blocked_when_tile_occupied_3() {
+	let mut board = Board::new(8, 8);
+	let player = Player{ id : 0};
+	let piece = ManPiece::new(&player);
+	let tile = OccupiedTile::new(Box::new(piece));
+	board.set_tile(4, 4, Box::new(tile));
+	
+	let result = find_simple_moves_for_king(
+		&board, 3, 5);
+	assert_eq!(
+		vec![
+			SimpleMove{to_row : 2, to_col : 4},
+			SimpleMove{to_row : 2, to_col : 6},
+			SimpleMove{to_row : 4, to_col : 6}],
+		result);
+}
+
+#[test]
+fn move_blocked_when_tile_occupied_4() {
+	let mut board = Board::new(8, 8);
+	let player = Player{ id : 0};
+	let piece = ManPiece::new(&player);
+	let tile = OccupiedTile::new(Box::new(piece));
+	board.set_tile(4, 6, Box::new(tile));
+	
+	let result = find_simple_moves_for_king(
+		&board, 3, 5);
+	assert_eq!(
+		vec![
+			SimpleMove{to_row : 2, to_col : 4},
+			SimpleMove{to_row : 2, to_col : 6},
+			SimpleMove{to_row : 4, to_col : 4}],
+		result);
+}
+
+}
+
+}
+
 }
