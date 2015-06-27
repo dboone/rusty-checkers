@@ -55,6 +55,14 @@ impl Board {
 
         board
     }
+	
+	pub fn number_rows(&self) -> usize {
+		self.number_rows
+	}
+	
+	pub fn number_columns(&self) -> usize {
+		self.number_columns
+	}
 
 	fn indices_to_index(&self, row : usize, column : usize) -> usize {
         row + self.number_rows * column
