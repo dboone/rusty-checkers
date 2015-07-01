@@ -1,3 +1,5 @@
+use checkers::player::Player;
+
 pub enum Direction {
 	/// The piece is moving such that its rank is increasing
 	IncreasingRank,
@@ -12,6 +14,14 @@ pub enum Direction {
 pub struct SimpleMove {
 	to_row : usize,
 	to_col : usize
+}
+
+#[derive(Debug)]
+#[derive(PartialEq, Eq)]
+pub struct JumpMove {
+	from_row : usize,
+	from_col : usize,
+	jumps : Vec<JumpMove>
 }
 
 /// Given the position of a main piece on a board, and the
@@ -43,6 +53,106 @@ pub fn find_simple_moves_for_man
 	}
 
 	moves
+}
+
+/// Given the position of a main piece on a board, and the
+/// direction this man piece is moving, determines the simple
+/// moves available to this piece.
+pub fn find_jump_moves_for_man
+(board : &super::Board,
+		player : &Player,
+		direction : &Direction,
+		row : usize,
+		col : usize)
+-> JumpMove {
+	let mut jump_root = JumpMove {
+		from_row : row,
+		from_col : col,
+		jumps : Vec::new()
+	};
+
+	let (pwnd_row_offset, jump_row_offset) = get_row_offsets(direction);
+
+	find_jump_moves_for_man_rustcursive(
+		board, player, &pwnd_row_offset, &jump_row_offset, &mut jump_root);
+
+	jump_root
+}
+
+fn find_jump_moves_for_man_rustcursive
+(board : &super::Board,
+		player : &Player,
+		pwnd_row_offset : &TileOffset,
+		jump_row_offset : &TileOffset,
+		jumps : &mut JumpMove) {	
+	let col_offset_left = (TileOffset::Negative(1), TileOffset::Negative(2));
+	let col_offset_right = (TileOffset::Positive(1), TileOffset::Positive(2));
+
+	try_jump_moves_for_man(
+		board, player, &pwnd_row_offset, &jump_row_offset, col_offset_left, jumps);
+	try_jump_moves_for_man(
+		board, player, &pwnd_row_offset, &jump_row_offset, col_offset_right, jumps);
+}
+
+fn try_jump_moves_for_man
+(board : &super::Board,
+		player : &Player,
+		pwnd_row_offset : &TileOffset,
+		jump_row_offset : &TileOffset,
+		col_offset : (TileOffset, TileOffset),
+		jumps : &mut JumpMove) {
+	let start_row = jumps.from_row;
+	let start_col = jumps.from_col;
+	let (pwnd_col_offset, jump_col_offset) = col_offset;
+	
+	let tile_on_board = is_tile_offset_in_bounds(
+		board, start_row, start_col, &jump_row_offset, &jump_col_offset);
+
+	if !tile_on_board {
+		return;
+	}
+
+	let (offset_row, offset_col)
+		= offset_tile(start_row, start_col, &pwnd_row_offset, &pwnd_col_offset);
+	let pwnd_tile = board.get_tile(offset_row, offset_col);
+
+	let (offset_row, offset_col)
+		= offset_tile(start_row, start_col, &jump_row_offset, &jump_col_offset);
+	let jump_tile = board.get_tile(offset_row, offset_col);
+
+	if jump_tile.get_piece().is_some() {
+		return;
+	}
+
+	let pwnd_piece_enemy = pwnd_tile
+		.get_piece()
+		.map(|piece| piece.get_player_id() != player.id)
+		.unwrap_or(false);
+
+	if !pwnd_piece_enemy {
+		return;
+	}
+
+	let mut the_move = JumpMove {
+		from_row : offset_row,
+		from_col : offset_col,
+		jumps : Vec::new() };
+
+	find_jump_moves_for_man_rustcursive(
+		board, player, &pwnd_row_offset, &jump_row_offset, &mut the_move);
+
+	jumps.jumps.push(the_move);
+}
+
+fn get_row_offsets(direction : &Direction) -> (TileOffset, TileOffset) {
+	let (pwnd_row_offset, jump_row_offset) = match *direction {
+			Direction::IncreasingRank =>
+				(TileOffset::Negative(1), TileOffset::Negative(2)),
+			Direction::DecreasingRank =>
+				(TileOffset::Positive(1), TileOffset::Positive(2))
+	};
+
+	(pwnd_row_offset, jump_row_offset) 
 }
 
 /// Given the position of a king piece on a board, determines
