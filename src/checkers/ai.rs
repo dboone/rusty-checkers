@@ -549,7 +549,7 @@ fn four_moves_when_middle_of_board() {
 #[test]
 fn move_blocked_when_tile_occupied_1() {
 	let mut board = Board::new(8, 8);
-	let player = Player{ id : 0};
+	let player = Player{ id : 0 };
 	let piece = ManPiece::new(&player);
 	let tile = OccupiedTile::new(Box::new(piece));
 	board.set_tile(2, 4, Box::new(tile));
@@ -567,7 +567,7 @@ fn move_blocked_when_tile_occupied_1() {
 #[test]
 fn move_blocked_when_tile_occupied_2() {
 	let mut board = Board::new(8, 8);
-	let player = Player{ id : 0};
+	let player = Player{ id : 0 };
 	let piece = ManPiece::new(&player);
 	let tile = OccupiedTile::new(Box::new(piece));
 	board.set_tile(2, 6, Box::new(tile));
@@ -585,7 +585,7 @@ fn move_blocked_when_tile_occupied_2() {
 #[test]
 fn move_blocked_when_tile_occupied_3() {
 	let mut board = Board::new(8, 8);
-	let player = Player{ id : 0};
+	let player = Player{ id : 0 };
 	let piece = ManPiece::new(&player);
 	let tile = OccupiedTile::new(Box::new(piece));
 	board.set_tile(4, 4, Box::new(tile));
@@ -603,7 +603,7 @@ fn move_blocked_when_tile_occupied_3() {
 #[test]
 fn move_blocked_when_tile_occupied_4() {
 	let mut board = Board::new(8, 8);
-	let player = Player{ id : 0};
+	let player = Player{ id : 0 };
 	let piece = ManPiece::new(&player);
 	let tile = OccupiedTile::new(Box::new(piece));
 	board.set_tile(4, 6, Box::new(tile));
