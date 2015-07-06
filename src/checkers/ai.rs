@@ -377,102 +377,75 @@ use checkers::OccupiedTile;
 use checkers::Player;
 
 #[test]
-fn no_moves_with_single_tile_board() {
+fn single_tile_board_has_no_moves() {
 	let board = Board::new(1, 1);
 	let result = find_simple_moves_for_man(
 		&board, Direction::IncreasingRank, 0, 0);
 	assert_eq!(Vec::<SimpleMove>::new(), result);
 }
 
-#[test]
-fn no_moves_when_min_rank_and_decreasing_rank() {
+fn test_move
+(dir : Direction,
+		start_row : usize,
+		start_col : usize,
+		exp_result : Vec<SimpleMove>) {
 	let board = Board::new(8, 8);
 	let result = find_simple_moves_for_man(
-		&board, Direction::DecreasingRank, 7, 4);
-	assert_eq!(Vec::<SimpleMove>::new(), result);
+		&board, dir, start_row, start_col);
+	assert_eq!(exp_result, result);
 }
 
-#[test]
-fn no_moves_when_max_rank_and_increasing_rank() {
-	let board = Board::new(8, 8);
-	let result = find_simple_moves_for_man(
-		&board, Direction::IncreasingRank, 0, 4);
-	assert_eq!(Vec::<SimpleMove>::new(), result);
-}
+ptest!(test_move [
+	no_moves_when_min_rank_and_decreasing_rank(
+		Direction::DecreasingRank, 7, 4, Vec::new()),
+	
+	no_moves_when_max_rank_and_increasing_rank(
+		Direction::IncreasingRank, 0, 4, Vec::new()),
+	
+	single_move_when_min_file(
+		Direction::IncreasingRank, 4, 0, vec![SimpleMove{to_row : 3, to_col : 1}]),
+	
+	single_move_when_max_file(
+		Direction::DecreasingRank, 3, 7, vec![SimpleMove{to_row : 4, to_col : 6}]),
+	
+	two_moves_when_middle_of_board_1(
+		Direction::DecreasingRank,
+		3,
+		5,
+		vec![SimpleMove{to_row : 4, to_col : 4}, SimpleMove{to_row : 4, to_col : 6}]),
+		
+	two_moves_when_middle_of_board_2(
+		Direction::IncreasingRank,
+		1,
+		2,
+		vec![SimpleMove{to_row : 0, to_col : 1}, SimpleMove{to_row : 0, to_col : 3}])
+]);
 
-#[test]
-fn single_move_when_min_file() {
-	let board = Board::new(8, 8);
-	let result = find_simple_moves_for_man(
-		&board, Direction::IncreasingRank, 4, 0);
-	assert_eq!(
-		vec![SimpleMove{to_row : 3, to_col : 1}],
-		result);
-}
-
-#[test]
-fn single_move_when_max_file() {
-	let board = Board::new(8, 8);
-	let result = find_simple_moves_for_man(
-		&board, Direction::DecreasingRank, 3, 7);
-	assert_eq!(
-		vec![SimpleMove{to_row : 4, to_col : 6}],
-		result);
-}
-
-#[test]
-fn two_moves_when_middle_of_board_1() {
-	let board = Board::new(8, 8);
-	let result = find_simple_moves_for_man(
-		&board, Direction::DecreasingRank, 3, 5);
-	assert_eq!(
-		vec![
-			SimpleMove{to_row : 4, to_col : 4},
-			SimpleMove{to_row : 4, to_col : 6}],
-		result);
-}
-
-#[test]
-fn two_moves_when_middle_of_board_2() {
-	let board = Board::new(8, 8);
-	let result = find_simple_moves_for_man(
-		&board, Direction::IncreasingRank, 1, 2);
-	assert_eq!(
-		vec![
-			SimpleMove{to_row : 0, to_col : 1},
-			SimpleMove{to_row : 0, to_col : 3}],
-		result);
-}
-
-#[test]
-fn move_blocked_when_tile_occupied_1() {
+fn test_move_blocked
+(piece_row : usize,
+		piece_col : usize,
+		dir : Direction,
+		start_row : usize,
+		start_col : usize,
+		exp_result : Vec<SimpleMove>) {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0};
 	let piece = ManPiece::new(&player);
 	let tile = OccupiedTile::new(Box::new(piece));
-	board.set_tile(3, 3, Box::new(tile));
+	board.set_tile(piece_row, piece_col, Box::new(tile));
 	
 	let result = find_simple_moves_for_man(
-		&board, Direction::IncreasingRank, 4, 4);
-	assert_eq!(
-		vec![SimpleMove{to_row : 3, to_col : 5}],
-		result);
+		&board, dir, start_row, start_col);
+	assert_eq!(exp_result, result);
 }
 
-#[test]
-fn move_blocked_when_tile_occupied_2() {
-	let mut board = Board::new(8, 8);
-	let player = Player{ id : 0};
-	let piece = ManPiece::new(&player);
-	let tile = OccupiedTile::new(Box::new(piece));
-	board.set_tile(3, 5, Box::new(tile));
-	
-	let result = find_simple_moves_for_man(
-		&board, Direction::IncreasingRank, 4, 4);
-	assert_eq!(
-		vec![SimpleMove{to_row : 3, to_col : 3}],
-		result);
-}
+ptest!(test_move_blocked [
+	move_blocked_when_tile_occupied_1(
+		3, 3, Direction::IncreasingRank, 4, 4, vec![SimpleMove{to_row : 3, to_col : 5}]),
+		
+	move_blocked_when_tile_occupied_2(
+		3, 5, Direction::IncreasingRank, 4, 4, vec![SimpleMove{to_row : 3, to_col : 3}])
+]);
 
 }
 
@@ -492,131 +465,79 @@ fn single_tile_board_has_no_moves() {
 	assert_eq!(Vec::<SimpleMove>::new(), result);
 }
 
-#[test]
-fn single_move_when_min_rank_and_min_file() {
+fn test_move
+(start_row : usize,
+		start_col : usize,
+		exp_result : Vec<SimpleMove>) {
 	let board = Board::new(8, 8);
 	let result = find_simple_moves_for_king(
-		&board, 7, 0);
-	assert_eq!(
-		vec![SimpleMove{to_row : 6, to_col : 1}],
-		result);
+		&board, start_row, start_col);
+	assert_eq!(exp_result, result);
 }
 
-#[test]
-fn single_move_when_min_rank_and_max_file() {
-	let board = Board::new(8, 8);
-	let result = find_simple_moves_for_king(
-		&board, 7, 7);
-	assert_eq!(
-		vec![SimpleMove{to_row : 6, to_col : 6}],
-		result);
-}
-
-#[test]
-fn single_move_when_max_rank_and_min_file() {
-	let board = Board::new(8, 8);
-	let result = find_simple_moves_for_king(
-		&board, 0, 0);
-	assert_eq!(
-		vec![SimpleMove{to_row : 1, to_col : 1}],
-		result);
-}
-
-#[test]
-fn single_move_when_max_rank_and_max_file() {
-	let board = Board::new(8, 8);
-	let result = find_simple_moves_for_king(
-		&board, 0, 7);
-	assert_eq!(
-		vec![SimpleMove{to_row : 1, to_col : 6}],
-		result);
-}
-
-#[test]
-fn four_moves_when_middle_of_board() {
-	let board = Board::new(8, 8);
-	let result = find_simple_moves_for_king(
-		&board, 3, 5);
-	assert_eq!(
-		vec![
+ptest!(test_move [
+	single_move_when_min_rank_and_min_file(
+		7, 0, vec![SimpleMove{to_row : 6, to_col : 1}]),
+		
+	single_move_when_min_rank_and_max_file(
+		7, 7, vec![SimpleMove{to_row : 6, to_col : 6}]),
+		
+	single_move_when_max_rank_and_min_file(
+		0, 0, vec![SimpleMove{to_row : 1, to_col : 1}]),
+		
+	single_move_when_max_rank_and_max_file(
+		0, 7, vec![SimpleMove{to_row : 1, to_col : 6}]),
+		
+	four_moves_when_middle_of_board(
+		3, 5, vec![
 			SimpleMove{to_row : 2, to_col : 4},
 			SimpleMove{to_row : 2, to_col : 6},
 			SimpleMove{to_row : 4, to_col : 4},
-			SimpleMove{to_row : 4, to_col : 6}],
-		result);
-}
+			SimpleMove{to_row : 4, to_col : 6}])
+]);
 
-#[test]
-fn move_blocked_when_tile_occupied_1() {
+fn test_move_blocked
+(piece_row : usize,
+		piece_col : usize,
+		start_row : usize,
+		start_col : usize,
+		exp_result : Vec<SimpleMove>) {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0 };
 	let piece = ManPiece::new(&player);
 	let tile = OccupiedTile::new(Box::new(piece));
-	board.set_tile(2, 4, Box::new(tile));
+	board.set_tile(piece_row, piece_col, Box::new(tile));
 	
 	let result = find_simple_moves_for_king(
-		&board, 3, 5);
-	assert_eq!(
-		vec![
+		&board, start_row, start_col);
+	assert_eq!(exp_result, result);
+}
+
+ptest!(test_move_blocked [
+	move_blocked_when_tile_occupied_1(
+		2, 4, 3, 5, vec![
 			SimpleMove{to_row : 2, to_col : 6},
 			SimpleMove{to_row : 4, to_col : 4},
-			SimpleMove{to_row : 4, to_col : 6}],
-		result);
-}
-
-#[test]
-fn move_blocked_when_tile_occupied_2() {
-	let mut board = Board::new(8, 8);
-	let player = Player{ id : 0 };
-	let piece = ManPiece::new(&player);
-	let tile = OccupiedTile::new(Box::new(piece));
-	board.set_tile(2, 6, Box::new(tile));
+			SimpleMove{to_row : 4, to_col : 6}]),
 	
-	let result = find_simple_moves_for_king(
-		&board, 3, 5);
-	assert_eq!(
-		vec![
+	move_blocked_when_tile_occupied_2(
+		2, 6, 3, 5, vec![
 			SimpleMove{to_row : 2, to_col : 4},
 			SimpleMove{to_row : 4, to_col : 4},
-			SimpleMove{to_row : 4, to_col : 6}],
-		result);
-}
-
-#[test]
-fn move_blocked_when_tile_occupied_3() {
-	let mut board = Board::new(8, 8);
-	let player = Player{ id : 0 };
-	let piece = ManPiece::new(&player);
-	let tile = OccupiedTile::new(Box::new(piece));
-	board.set_tile(4, 4, Box::new(tile));
-	
-	let result = find_simple_moves_for_king(
-		&board, 3, 5);
-	assert_eq!(
-		vec![
+			SimpleMove{to_row : 4, to_col : 6}]),
+			
+	move_blocked_when_tile_occupied_3(
+		4, 4, 3, 5, vec![
 			SimpleMove{to_row : 2, to_col : 4},
 			SimpleMove{to_row : 2, to_col : 6},
-			SimpleMove{to_row : 4, to_col : 6}],
-		result);
-}
-
-#[test]
-fn move_blocked_when_tile_occupied_4() {
-	let mut board = Board::new(8, 8);
-	let player = Player{ id : 0 };
-	let piece = ManPiece::new(&player);
-	let tile = OccupiedTile::new(Box::new(piece));
-	board.set_tile(4, 6, Box::new(tile));
-	
-	let result = find_simple_moves_for_king(
-		&board, 3, 5);
-	assert_eq!(
-		vec![
+			SimpleMove{to_row : 4, to_col : 6}]),
+			
+	move_blocked_when_tile_occupied_4(
+		4, 6, 3, 5, vec![
 			SimpleMove{to_row : 2, to_col : 4},
 			SimpleMove{to_row : 2, to_col : 6},
-			SimpleMove{to_row : 4, to_col : 4}],
-		result);
-}
+			SimpleMove{to_row : 4, to_col : 4}])
+]);
 
 }
 
@@ -632,13 +553,11 @@ use checkers::ManPiece;
 use checkers::OccupiedTile;
 use checkers::Player;
 
-#[test]
-fn one_piece_jumping_left_off_board() {
+fn test_jumping_alone
+(start_row : usize, start_col : usize) {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0 };
 	let direction = Direction::DecreasingRank;
-	let start_row = 6;
-	let start_col = 1;
 
 	let result = find_jump_moves_for_man(
 		&board, &player, &direction, start_row, start_col);
@@ -651,162 +570,105 @@ fn one_piece_jumping_left_off_board() {
 	assert_eq!(exp_result, result);
 }
 
-#[test]
-fn jumping_right_off_board() {
+ptest!(test_jumping_alone [
+	jumping_left_off_board(6, 1),
+	jumping_right_off_board(6, 6),
+	jumping_middle_of_board(4, 3)
+]);
+
+
+fn test_single_jump_single_enemy
+(start_row : usize,
+		start_col : usize,
+		enemy_row : usize,
+		enemy_col : usize,
+		exp_result : JumpMove) {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0 };
 	let direction = Direction::DecreasingRank;
-	let start_row = 6;
-	let start_col = 6;
-
-	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
-
-	let exp_result = JumpMove{
-		from_row : start_row,
-		from_col : start_col,
-		jumps : Vec::new() };
-
-	assert_eq!(exp_result, result);
-}
-
-#[test]
-fn jumping_exiled() {
-	let mut board = Board::new(8, 8);
-	let player = Player{ id : 0 };
-	let direction = Direction::DecreasingRank;
-	let start_row = 4;
-	let start_col = 3;
-
-	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
-
-	let exp_result = JumpMove{
-		from_row : start_row,
-		from_col : start_col,
-		jumps : Vec::new() };
-
-	assert_eq!(exp_result, result);
-}
-
-#[test]
-fn jumping_adjacent_enemy_left() {
-	let mut board = Board::new(8, 8);
-	let player = Player{ id : 0 };
-	let direction = Direction::DecreasingRank;
-	let start_row = 4;
-	let start_col = 3;
 
 	let opponent = Player{ id : 1 };
-	let piece = ManPiece::new(&opponent);
-	let tile = OccupiedTile::new(Box::new(piece));
-	board.set_tile(5, 2, Box::new(tile));
+	
+	let enemy_piece = ManPiece::new(&opponent);
+	let enemy_tile = OccupiedTile::new(Box::new(enemy_piece));
+	board.set_tile(enemy_row, enemy_col, Box::new(enemy_tile));
 
 	let result = find_jump_moves_for_man(
 		&board, &player, &direction, start_row, start_col);
 
-	let exp_result = JumpMove{
-		from_row : start_row,
-		from_col : start_col,
-		jumps : vec![ JumpMove{ from_row : 6, from_col : 1, jumps : Vec::new() } ] };
-
 	assert_eq!(exp_result, result);
 }
 
-#[test]
-fn jumping_adjacent_enemy_right() {
+ptest!(test_single_jump_single_enemy [
+	jumping_adjacent_enemy_left(
+	4, 3, 5, 2, JumpMove{
+		from_row : 4,
+		from_col : 3,
+		jumps : vec![JumpMove{ from_row : 6, from_col : 1, jumps : Vec::new() }] }),
+		
+	jumping_adjacent_enemy_right(
+		4, 3, 5, 4, JumpMove{
+			from_row : 4,
+			from_col : 3,
+			jumps : vec![JumpMove{ from_row : 6, from_col : 5, jumps : Vec::new() }] })
+]);
+
+fn test_single_jump_two_enemies
+(start_row : usize,
+		start_col : usize,
+		left_enemy_row : usize,
+		left_enemy_col : usize,
+		right_enemy_row : usize,
+		right_enemy_col : usize,
+		exp_result : JumpMove) {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0 };
 	let direction = Direction::DecreasingRank;
-	let start_row = 4;
-	let start_col = 3;
-
-	let opponent = Player{ id : 1 };
-	let piece = ManPiece::new(&opponent);
-	let tile = OccupiedTile::new(Box::new(piece));
-	board.set_tile(5, 4, Box::new(tile));
-
-	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
-
-	let exp_result = JumpMove{
-		from_row : start_row,
-		from_col : start_col,
-		jumps : vec![ JumpMove{ from_row : 6, from_col : 5, jumps : Vec::new() } ] };
-
-	assert_eq!(exp_result, result);
-}
-
-#[test]
-fn jumping_two_forward_adjacent_enemies() {
-	let mut board = Board::new(8, 8);
-	let player = Player{ id : 0 };
-	let direction = Direction::DecreasingRank;
-	let start_row = 4;
-	let start_col = 3;
 
 	let opponent = Player{ id : 1 };
 
-	let left_piece = ManPiece::new(&opponent);
-	let left_tile = OccupiedTile::new(Box::new(left_piece));
-	board.set_tile(5, 2, Box::new(left_tile));
+	let left_enemy_piece = ManPiece::new(&opponent);
+	let left_enemy_tile = OccupiedTile::new(Box::new(left_enemy_piece));
+	board.set_tile(left_enemy_row, left_enemy_col, Box::new(left_enemy_tile));
 
-	let right_piece = ManPiece::new(&opponent);
-	let right_tile = OccupiedTile::new(Box::new(right_piece));
-	board.set_tile(5, 4, Box::new(right_tile));
-
-	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
-
-	let exp_result = JumpMove{
-		from_row : start_row,
-		from_col : start_col,
-		jumps : vec![ JumpMove{ from_row : 6, from_col : 1, jumps : Vec::new() },
-			JumpMove{ from_row : 6, from_col : 5, jumps : Vec::new() } ] };
-
-	assert_eq!(exp_result, result);
-}
-
-#[test]
-fn jumping_two_backward_adjacent_enemies() {
-	let mut board = Board::new(8, 8);
-	let player = Player{ id : 0 };
-	let direction = Direction::DecreasingRank;
-	let start_row = 6;
-	let start_col = 3;
-
-	let opponent = Player{ id : 1 };
-
-	let left_piece = ManPiece::new(&opponent);
-	let left_tile = OccupiedTile::new(Box::new(left_piece));
-	board.set_tile(5, 2, Box::new(left_tile));
-
-	let right_piece = ManPiece::new(&opponent);
-	let right_tile = OccupiedTile::new(Box::new(right_piece));
-	board.set_tile(5, 4, Box::new(right_tile));
+	let right_enemy_piece = ManPiece::new(&opponent);
+	let right_enemy_tile = OccupiedTile::new(Box::new(right_enemy_piece));
+	board.set_tile(right_enemy_row, right_enemy_col, Box::new(right_enemy_tile));
 
 	let result = find_jump_moves_for_man(
 		&board, &player, &direction, start_row, start_col);
 
-	let exp_result = JumpMove{
-		from_row : start_row,
-		from_col : start_col,
-		jumps : Vec::new() };
-
 	assert_eq!(exp_result, result);
 }
+	
+ptest!(test_single_jump_two_enemies [
+	jumping_two_forward_adjacent_enemies(
+		4, 3, 5, 2, 5, 4, JumpMove{
+			from_row : 4,
+			from_col : 3,
+			jumps : vec![
+				JumpMove{ from_row : 6, from_col : 1, jumps : Vec::new() },
+				JumpMove{ from_row : 6, from_col : 5, jumps : Vec::new() }] }),
+				
+	jumping_two_backward_adjacent_enemies(
+		6, 3, 5, 2, 5, 4, JumpMove{
+			from_row : 6,
+			from_col : 3,
+			jumps : Vec::new() })
+]);
 
-#[test]
-fn jumping_adjacent_friendly_piece_left() {
+fn test_jumping_friendly_piece
+(start_row : usize,
+		start_col : usize,
+		friendly_row : usize,
+		friendly_col : usize) {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0 };
 	let direction = Direction::DecreasingRank;
-	let start_row = 6;
-	let start_col = 3;
 
 	let left_piece = ManPiece::new(&player);
 	let left_tile = OccupiedTile::new(Box::new(left_piece));
-	board.set_tile(5, 2, Box::new(left_tile));
+	board.set_tile(friendly_row, friendly_col, Box::new(left_tile));
 
 	let result = find_jump_moves_for_man(
 		&board, &player, &direction, start_row, start_col);
@@ -819,45 +681,30 @@ fn jumping_adjacent_friendly_piece_left() {
 	assert_eq!(exp_result, result);
 }
 
-#[test]
-fn jumping_adjacent_friendly_piece_right() {
+ptest!(test_jumping_friendly_piece [
+	jumping_adjacent_friendly_piece_left(6, 3, 5, 2),
+	jumping_adjacent_friendly_piece_right(6, 3, 5, 4)
+]);
+
+fn test_single_jump_blocked
+(start_row : usize,
+		start_col : usize,
+		pwnd_row : usize,
+		pwnd_col : usize,
+		blocked_row : usize,
+		blocked_col : usize) {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0 };
 	let direction = Direction::DecreasingRank;
-	let start_row = 6;
-	let start_col = 3;
-
-	let right_piece = ManPiece::new(&player);
-	let right_tile = OccupiedTile::new(Box::new(right_piece));
-	board.set_tile(5, 4, Box::new(right_tile));
-
-	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
-
-	let exp_result = JumpMove{
-		from_row : start_row,
-		from_col : start_col,
-		jumps : Vec::new() };
-
-	assert_eq!(exp_result, result);
-}
-
-#[test]
-fn jumping_adjacent_enemy_blocked_left() {
-	let mut board = Board::new(8, 8);
-	let player = Player{ id : 0 };
-	let direction = Direction::DecreasingRank;
-	let start_row = 4;
-	let start_col = 3;
 
 	let opponent = Player{ id : 1 };
 	let pwnd_piece = ManPiece::new(&opponent);
 	let pwnd_tile = OccupiedTile::new(Box::new(pwnd_piece));
-	board.set_tile(5, 2, Box::new(pwnd_tile));
+	board.set_tile(pwnd_row, pwnd_col, Box::new(pwnd_tile));
 
 	let block_piece = ManPiece::new(&player);
 	let block_tile = OccupiedTile::new(Box::new(block_piece));
-	board.set_tile(6, 1, Box::new(block_tile));
+	board.set_tile(blocked_row, blocked_col, Box::new(block_tile));
 
 	let result = find_jump_moves_for_man(
 		&board, &player, &direction, start_row, start_col);
@@ -870,33 +717,10 @@ fn jumping_adjacent_enemy_blocked_left() {
 	assert_eq!(exp_result, result);
 }
 
-#[test]
-fn jumping_adjacent_enemy_blocked_right() {
-	let mut board = Board::new(8, 8);
-	let player = Player{ id : 0 };
-	let direction = Direction::DecreasingRank;
-	let start_row = 4;
-	let start_col = 3;
-
-	let opponent = Player{ id : 1 };
-	let pwnd_piece = ManPiece::new(&opponent);
-	let pwnd_tile = OccupiedTile::new(Box::new(pwnd_piece));
-	board.set_tile(5, 4, Box::new(pwnd_tile));
-
-	let block_piece = ManPiece::new(&player);
-	let block_tile = OccupiedTile::new(Box::new(block_piece));
-	board.set_tile(6, 5, Box::new(block_tile));
-
-	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
-
-	let exp_result = JumpMove{
-		from_row : start_row,
-		from_col : start_col,
-		jumps : Vec::new() };
-
-	assert_eq!(exp_result, result);
-}
+ptest!(test_single_jump_blocked [
+	jumping_adjacent_enemy_blocked_left(4, 3, 5, 2, 6, 1),
+	jumping_adjacent_enemy_blocked_right(4, 3, 5, 4, 6, 5)
+]);
 
 #[test]
 fn jumping_two_forward_adjacent_enemies_left_blocked() {

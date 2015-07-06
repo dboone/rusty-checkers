@@ -2,3 +2,6 @@
 name = "rusty-checkers"
 version = "0.1.0"
 authors = ["dboone <boonesoftware@gmail.com>"]
+
+[dependencies.corrosion]
+git = "https://github.com/drbassett/corrosion.git"
