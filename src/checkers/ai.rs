@@ -24,6 +24,16 @@ pub struct JumpMove {
 	jumps : Vec<JumpMove>
 }
 
+impl JumpMove {
+	fn new(from_row : usize, from_col : usize) -> JumpMove {
+		JumpMove{ from_row : from_row, from_col : from_col, jumps : Vec::new() }
+	}
+	
+	fn with_jumps(from_row : usize, from_col : usize, jumps : Vec<JumpMove>) -> JumpMove {
+		JumpMove{ from_row : from_row, from_col : from_col, jumps : jumps }
+	}
+}
+
 /// Given the position of a main piece on a board, and the
 /// direction this man piece is moving, determines the simple
 /// moves available to this piece.
@@ -65,11 +75,7 @@ pub fn find_jump_moves_for_man
 		row : usize,
 		col : usize)
 -> JumpMove {
-	let mut jump_root = JumpMove {
-		from_row : row,
-		from_col : col,
-		jumps : Vec::new()
-	};
+	let mut jump_root = JumpMove::new(row, col);
 
 	let (pwnd_row_offset, jump_row_offset) = get_row_offsets(direction);
 
@@ -133,10 +139,7 @@ fn try_jump_moves_for_man
 		return;
 	}
 
-	let mut the_move = JumpMove {
-		from_row : offset_row,
-		from_col : offset_col,
-		jumps : Vec::new() };
+	let mut the_move = JumpMove::new(offset_row, offset_col);
 
 	find_jump_moves_for_man_rustcursive(
 		board, player, &pwnd_row_offset, &jump_row_offset, &mut the_move);
@@ -562,10 +565,7 @@ fn test_jumping_alone
 	let result = find_jump_moves_for_man(
 		&board, &player, &direction, start_row, start_col);
 
-	let exp_result = JumpMove{
-		from_row : start_row,
-		from_col : start_col,
-		jumps : Vec::new() };
+	let exp_result = JumpMove::new(start_row, start_col);
 
 	assert_eq!(exp_result, result);
 }
@@ -601,16 +601,10 @@ fn test_single_jump_single_enemy
 
 ptest!(test_single_jump_single_enemy [
 	jumping_adjacent_enemy_left(
-	4, 3, 5, 2, JumpMove{
-		from_row : 4,
-		from_col : 3,
-		jumps : vec![JumpMove{ from_row : 6, from_col : 1, jumps : Vec::new() }] }),
+	4, 3, 5, 2, JumpMove::with_jumps(4, 3, vec![JumpMove::new(6, 1)])),
 		
 	jumping_adjacent_enemy_right(
-		4, 3, 5, 4, JumpMove{
-			from_row : 4,
-			from_col : 3,
-			jumps : vec![JumpMove{ from_row : 6, from_col : 5, jumps : Vec::new() }] })
+		4, 3, 5, 4, JumpMove::with_jumps(4, 3, vec![JumpMove::new(6, 5)]))
 ]);
 
 fn test_single_jump_two_enemies
@@ -643,18 +637,10 @@ fn test_single_jump_two_enemies
 	
 ptest!(test_single_jump_two_enemies [
 	jumping_two_forward_adjacent_enemies(
-		4, 3, 5, 2, 5, 4, JumpMove{
-			from_row : 4,
-			from_col : 3,
-			jumps : vec![
-				JumpMove{ from_row : 6, from_col : 1, jumps : Vec::new() },
-				JumpMove{ from_row : 6, from_col : 5, jumps : Vec::new() }] }),
+		4, 3, 5, 2, 5, 4, JumpMove::with_jumps(4, 3, vec![JumpMove::new(6, 1), JumpMove::new(6, 5)])),
 				
 	jumping_two_backward_adjacent_enemies(
-		6, 3, 5, 2, 5, 4, JumpMove{
-			from_row : 6,
-			from_col : 3,
-			jumps : Vec::new() })
+		6, 3, 5, 2, 5, 4, JumpMove::new(6, 3))
 ]);
 
 fn test_jumping_friendly_piece
@@ -673,10 +659,7 @@ fn test_jumping_friendly_piece
 	let result = find_jump_moves_for_man(
 		&board, &player, &direction, start_row, start_col);
 
-	let exp_result = JumpMove{
-		from_row : start_row,
-		from_col : start_col,
-		jumps : Vec::new() };
+	let exp_result = JumpMove::new(start_row, start_col);
 
 	assert_eq!(exp_result, result);
 }
@@ -709,10 +692,7 @@ fn test_single_jump_blocked
 	let result = find_jump_moves_for_man(
 		&board, &player, &direction, start_row, start_col);
 
-	let exp_result = JumpMove{
-		from_row : start_row,
-		from_col : start_col,
-		jumps : Vec::new() };
+	let exp_result = JumpMove::new(start_row, start_col);
 
 	assert_eq!(exp_result, result);
 }
@@ -747,10 +727,8 @@ fn jumping_two_forward_adjacent_enemies_left_blocked() {
 	let result = find_jump_moves_for_man(
 		&board, &player, &direction, start_row, start_col);
 
-	let exp_result = JumpMove{
-		from_row : start_row,
-		from_col : start_col,
-		jumps : vec![ JumpMove{ from_row : 6, from_col : 5, jumps : Vec::new() } ] };
+	let exp_result = JumpMove::with_jumps(
+		start_row, start_col, vec![JumpMove::new(6, 5)]);
 
 	assert_eq!(exp_result, result);
 }
@@ -780,10 +758,8 @@ fn jumping_two_forward_adjacent_enemies_right_blocked() {
 	let result = find_jump_moves_for_man(
 		&board, &player, &direction, start_row, start_col);
 
-	let exp_result = JumpMove{
-		from_row : start_row,
-		from_col : start_col,
-		jumps : vec![ JumpMove{ from_row : 6, from_col : 1, jumps : Vec::new() } ] };
+	let exp_result = JumpMove::with_jumps(
+		start_row, start_col, vec![JumpMove::new(6, 1)]);
 
 	assert_eq!(exp_result, result);
 }
@@ -834,34 +810,26 @@ fn the_one_true_test() {
 	let result = find_jump_moves_for_man(
 		&board, &player, &direction, start_row, start_col);
 
-	let exp_result = JumpMove{
-		from_row : start_row,
-		from_col : start_col,
-		jumps : vec![ JumpMove{
-						 from_row: 4, from_col: 1, jumps:
-							vec![ 
-								JumpMove{
-									from_row: 2, from_col: 3, jumps:
-									vec![ JumpMove{ from_row: 0, from_col: 1, jumps: Vec::new() },
-										  JumpMove{ from_row: 0, from_col: 5, jumps: Vec::new() }
-										]
-						        }
-						    ]
-					},
-					JumpMove{
-						from_row: 4, from_col: 5, jumps: 
-							vec![ 
-								JumpMove{
-									from_row: 2, from_col: 3, jumps:
-									vec![ JumpMove{ from_row: 0, from_col: 1, jumps: Vec::new() },
-										  JumpMove{ from_row: 0, from_col: 5, jumps: Vec::new() } 
-										]
-								},
-								JumpMove{ from_row: 2, from_col: 7, jumps: Vec::new() }
-							]
-					}
-			]
-	};
+	let exp_result = JumpMove::with_jumps(
+		start_row,
+		start_col,
+		vec![JumpMove::with_jumps(
+			4,
+			1,
+			vec![
+				JumpMove::with_jumps(
+					2,
+					3,
+					vec![JumpMove::new(0, 1), JumpMove::new(0, 5)])]),
+			JumpMove::with_jumps(
+				4,
+				5,
+				vec![
+					JumpMove::with_jumps(
+						2,
+						3,
+						vec![JumpMove::new(0, 1), JumpMove::new(0, 5)]),
+					JumpMove::new(2, 7)])]);
 
 	assert_eq!(exp_result, result);
 }
