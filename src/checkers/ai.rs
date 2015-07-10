@@ -1,5 +1,7 @@
 use checkers::player::Player;
 
+use std::collections::HashSet;
+
 pub enum Direction {
 	/// The piece is moving such that its rank is increasing
 	IncreasingRank,
@@ -47,7 +49,7 @@ pub fn find_simple_moves_for_man
 		Direction::IncreasingRank => TileOffset::Negative(1),
 		Direction::DecreasingRank => TileOffset::Positive(1),
 	};
-	
+
 	let mut moves = Vec::new();
 
 	{
@@ -90,7 +92,7 @@ fn find_jump_moves_for_man_rustcursive
 		player : &Player,
 		pwnd_row_offset : &TileOffset,
 		jump_row_offset : &TileOffset,
-		jumps : &mut JumpMove) {	
+		jumps : &mut JumpMove) {
 	let col_offset_left = (TileOffset::Negative(1), TileOffset::Negative(2));
 	let col_offset_right = (TileOffset::Positive(1), TileOffset::Positive(2));
 
@@ -110,7 +112,7 @@ fn try_jump_moves_for_man
 	let start_row = jumps.from_row;
 	let start_col = jumps.from_col;
 	let (pwnd_col_offset, jump_col_offset) = col_offset;
-	
+
 	let tile_on_board = is_tile_offset_in_bounds(
 		board, start_row, start_col, &jump_row_offset, &jump_col_offset);
 
@@ -147,12 +149,152 @@ fn try_jump_moves_for_man
 	jumps.jumps.push(the_move);
 }
 
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
+struct BoardPosition {
+	row : usize,
+	column : usize
+}
+
+impl BoardPosition {
+	fn new(row : usize, column : usize) -> BoardPosition {
+		BoardPosition{row : row, column : column}
+	}
+}
+
+pub fn find_jump_moves_for_king
+(board : &super::Board,
+		player : &Player,
+		row : usize,
+		col : usize)
+-> JumpMove {
+	let mut jump_root = JumpMove::new(row, col);
+	let mut jumped_tiles = HashSet::new();
+
+	find_jump_moves_for_king_rustcursive(
+		board, player, BoardPosition::new(row, col), &mut jump_root, &mut jumped_tiles);
+
+	jump_root
+}
+
+fn find_jump_moves_for_king_rustcursive
+(board : &super::Board,
+		player : &Player,
+		init_position : BoardPosition,
+		curr_jump_root : &mut JumpMove,
+		jumped_tiles : &mut HashSet<BoardPosition>) {
+	push_jump_for_king_if_valid(
+		board,
+		player,
+		init_position,
+		curr_jump_root,
+		jumped_tiles,
+		TileOffset::Negative(1),
+		TileOffset::Negative(2),
+		TileOffset::Negative(1),
+		TileOffset::Negative(2));
+
+	push_jump_for_king_if_valid(
+		board,
+		player,
+		init_position,
+		curr_jump_root,
+		jumped_tiles,
+		TileOffset::Negative(1),
+		TileOffset::Negative(2),
+		TileOffset::Positive(1),
+		TileOffset::Positive(2));
+
+	push_jump_for_king_if_valid(
+		board,
+		player,
+		init_position,
+		curr_jump_root,
+		jumped_tiles,
+		TileOffset::Positive(1),
+		TileOffset::Positive(2),
+		TileOffset::Negative(1),
+		TileOffset::Negative(2));
+
+	push_jump_for_king_if_valid(
+		board,
+		player,
+		init_position,
+		curr_jump_root,
+		jumped_tiles,
+		TileOffset::Positive(1),
+		TileOffset::Positive(2),
+		TileOffset::Positive(1),
+		TileOffset::Positive(2));
+}
+
+fn push_jump_for_king_if_valid
+(board : &super::Board,
+		player : &Player,
+		init_position : BoardPosition,
+		curr_jump_root : &mut JumpMove,
+		jumped_tiles : &mut HashSet<BoardPosition>,
+		pwnd_row_offset : TileOffset,
+		jump_row_offset : TileOffset,
+		pwnd_col_offset : TileOffset,
+		jump_col_offset : TileOffset) {
+	let start_row = curr_jump_root.from_row;
+	let start_col = curr_jump_root.from_col;
+
+	let tile_on_board = is_tile_offset_in_bounds(
+		board, start_row, start_col, &jump_row_offset, &jump_col_offset);
+	if !tile_on_board {
+		return;
+	}
+
+	let (jumped_row, jumped_col)
+		= offset_tile(start_row, start_col, &pwnd_row_offset, &pwnd_col_offset);
+	let pwnd_tile = board.get_tile(jumped_row, jumped_col);
+
+	let (end_row, end_col)
+		= offset_tile(start_row, start_col, &jump_row_offset, &jump_col_offset);
+	let end_tile = board.get_tile(end_row, end_col);
+
+	let tile_blocked = end_tile.get_piece().is_some();
+
+	// The initial position of the jumping piece is OK to jump back to. This is because
+	// the jumping piece "floats" around the board while the other pieces remain fixed.
+	let at_initial_position = init_position == BoardPosition::new(end_row, end_col);
+	if tile_blocked && !at_initial_position {
+		return;
+	}
+
+	let pwnd_piece_enemy = pwnd_tile
+		.get_piece()
+		.map(|piece| piece.get_player_id() != player.id)
+		.unwrap_or(false);
+
+	if !pwnd_piece_enemy {
+		return;
+	}
+
+	// check to see if we have already jumped the tile
+	let jumped_position = BoardPosition::new(jumped_row, jumped_col);
+	if jumped_tiles.contains(&jumped_position) {
+		return;
+	}
+
+	let mut jump = JumpMove::new(end_row, end_col);
+
+	jumped_tiles.insert(jumped_position);
+
+	find_jump_moves_for_king_rustcursive(board, player, init_position, &mut jump, jumped_tiles);
+
+	jumped_tiles.remove(&jumped_position);
+
+	curr_jump_root.jumps.push(jump);
+}
+
 fn get_row_offsets(direction : &Direction) -> (TileOffset, TileOffset) {
 	let (pwnd_row_offset, jump_row_offset) = match *direction {
-			Direction::IncreasingRank =>
-				(TileOffset::Negative(1), TileOffset::Negative(2)),
-			Direction::DecreasingRank =>
-				(TileOffset::Positive(1), TileOffset::Positive(2))
+		Direction::IncreasingRank =>
+			(TileOffset::Negative(1), TileOffset::Negative(2)),
+		Direction::DecreasingRank =>
+			(TileOffset::Positive(1), TileOffset::Positive(2))
 	};
 
 	(pwnd_row_offset, jump_row_offset) 
@@ -170,28 +312,28 @@ pub fn find_simple_moves_for_king
 		col : usize)
 -> Vec<SimpleMove> {
 	let mut moves = Vec::new();
-	
+
 	{
 		let row_offset = TileOffset::Negative(1);
 		let col_offset = TileOffset::Negative(1);
 		push_simple_move_if_valid(
 			board, row, col, &row_offset, &col_offset, &mut moves);
 	}
-	
+
 	{
 		let row_offset = TileOffset::Negative(1);
 		let col_offset = TileOffset::Positive(1);
 		push_simple_move_if_valid(
 			board, row, col, &row_offset, &col_offset, &mut moves);
 	}
-	
+
 	{
 		let row_offset = TileOffset::Positive(1);
 		let col_offset = TileOffset::Negative(1);
 		push_simple_move_if_valid(
 			board, row, col, &row_offset, &col_offset, &mut moves);
 	}
-	
+
 	{
 		let row_offset = TileOffset::Positive(1);
 		let col_offset = TileOffset::Positive(1);
@@ -282,7 +424,7 @@ fn is_tile_offset_in_bounds
 -> bool {
 	let max_row_index = board.number_rows() - 1;
 	let max_col_index = board.number_columns() - 1;
-	
+
 	is_offset_value_in_range(start_row, max_row_index, row_offset)
 	&& is_offset_value_in_range(start_col, max_col_index, col_offset)
 }
@@ -322,22 +464,22 @@ fn test_move
 ptest!(test_move [
 	no_moves_when_min_rank_and_decreasing_rank(
 		Direction::DecreasingRank, 7, 4, Vec::new()),
-	
+
 	no_moves_when_max_rank_and_increasing_rank(
 		Direction::IncreasingRank, 0, 4, Vec::new()),
-	
+
 	single_move_when_min_file(
 		Direction::IncreasingRank, 4, 0, vec![SimpleMove{to_row : 3, to_col : 1}]),
-	
+
 	single_move_when_max_file(
 		Direction::DecreasingRank, 3, 7, vec![SimpleMove{to_row : 4, to_col : 6}]),
-	
+
 	two_moves_when_middle_of_board_1(
 		Direction::DecreasingRank,
 		3,
 		5,
 		vec![SimpleMove{to_row : 4, to_col : 4}, SimpleMove{to_row : 4, to_col : 6}]),
-		
+
 	two_moves_when_middle_of_board_2(
 		Direction::IncreasingRank,
 		1,
@@ -357,7 +499,7 @@ fn test_move_blocked
 	let piece = ManPiece::new(&player);
 	let tile = OccupiedTile::new(Box::new(piece));
 	board.set_tile(piece_row, piece_col, Box::new(tile));
-	
+
 	let result = find_simple_moves_for_man(
 		&board, dir, start_row, start_col);
 	assert_eq!(exp_result, result);
@@ -366,7 +508,7 @@ fn test_move_blocked
 ptest!(test_move_blocked [
 	move_blocked_when_tile_occupied_1(
 		3, 3, Direction::IncreasingRank, 4, 4, vec![SimpleMove{to_row : 3, to_col : 5}]),
-		
+
 	move_blocked_when_tile_occupied_2(
 		3, 5, Direction::IncreasingRank, 4, 4, vec![SimpleMove{to_row : 3, to_col : 3}])
 ]);
@@ -402,16 +544,16 @@ fn test_move
 ptest!(test_move [
 	single_move_when_min_rank_and_min_file(
 		7, 0, vec![SimpleMove{to_row : 6, to_col : 1}]),
-		
+
 	single_move_when_min_rank_and_max_file(
 		7, 7, vec![SimpleMove{to_row : 6, to_col : 6}]),
-		
+
 	single_move_when_max_rank_and_min_file(
 		0, 0, vec![SimpleMove{to_row : 1, to_col : 1}]),
-		
+
 	single_move_when_max_rank_and_max_file(
 		0, 7, vec![SimpleMove{to_row : 1, to_col : 6}]),
-		
+
 	four_moves_when_middle_of_board(
 		3, 5, vec![
 			SimpleMove{to_row : 2, to_col : 4},
@@ -431,7 +573,7 @@ fn test_move_blocked
 	let piece = ManPiece::new(&player);
 	let tile = OccupiedTile::new(Box::new(piece));
 	board.set_tile(piece_row, piece_col, Box::new(tile));
-	
+
 	let result = find_simple_moves_for_king(
 		&board, start_row, start_col);
 	assert_eq!(exp_result, result);
@@ -443,19 +585,19 @@ ptest!(test_move_blocked [
 			SimpleMove{to_row : 2, to_col : 6},
 			SimpleMove{to_row : 4, to_col : 4},
 			SimpleMove{to_row : 4, to_col : 6}]),
-	
+
 	move_blocked_when_tile_occupied_2(
 		2, 6, 3, 5, vec![
 			SimpleMove{to_row : 2, to_col : 4},
 			SimpleMove{to_row : 4, to_col : 4},
 			SimpleMove{to_row : 4, to_col : 6}]),
-			
+
 	move_blocked_when_tile_occupied_3(
 		4, 4, 3, 5, vec![
 			SimpleMove{to_row : 2, to_col : 4},
 			SimpleMove{to_row : 2, to_col : 6},
 			SimpleMove{to_row : 4, to_col : 6}]),
-			
+
 	move_blocked_when_tile_occupied_4(
 		4, 6, 3, 5, vec![
 			SimpleMove{to_row : 2, to_col : 4},
@@ -509,7 +651,7 @@ fn test_single_jump_single_enemy
 	let direction = Direction::DecreasingRank;
 
 	let opponent = Player{ id : 1 };
-	
+
 	let enemy_piece = ManPiece::new(&opponent);
 	let enemy_tile = OccupiedTile::new(Box::new(enemy_piece));
 	board.set_tile(enemy_row, enemy_col, Box::new(enemy_tile));
@@ -523,7 +665,7 @@ fn test_single_jump_single_enemy
 ptest!(test_single_jump_single_enemy [
 	jumping_adjacent_enemy_left(
 	4, 3, 5, 2, JumpMove::with_jumps(4, 3, vec![JumpMove::new(6, 1)])),
-		
+
 	jumping_adjacent_enemy_right(
 		4, 3, 5, 4, JumpMove::with_jumps(4, 3, vec![JumpMove::new(6, 5)]))
 ]);
@@ -559,7 +701,7 @@ fn test_single_jump_two_enemies
 ptest!(test_single_jump_two_enemies [
 	jumping_two_forward_adjacent_enemies(
 		4, 3, 5, 2, 5, 4, JumpMove::with_jumps(4, 3, vec![JumpMove::new(6, 1), JumpMove::new(6, 5)])),
-				
+
 	jumping_two_backward_adjacent_enemies(
 		6, 3, 5, 2, 5, 4, JumpMove::new(6, 3))
 ]);
@@ -751,6 +893,143 @@ fn the_one_true_test() {
 						3,
 						vec![JumpMove::new(0, 1), JumpMove::new(0, 5)]),
 					JumpMove::new(2, 7)])]);
+
+	assert_eq!(exp_result, result);
+}
+
+}
+
+mod king_piece {
+
+use super::super::super::*;
+use checkers::Board;
+use checkers::ManPiece;
+use checkers::OccupiedTile;
+use checkers::Player;
+
+#[test]
+fn no_adjacent_enemy_pieces() {
+	let board = Board::new(8, 8);
+	let player = Player{ id : 0 };
+
+	let start_row = 6;
+	let start_col = 3;
+
+	let result = find_jump_moves_for_king(
+		&board, &player, start_row, start_col);
+	let exp_result = JumpMove::new(start_row, start_col);
+
+	assert_eq!(exp_result, result);
+}
+
+fn test_single_jump
+(enemy_row : usize, enemy_col : usize, exp_result : JumpMove) {
+	let mut board = Board::new(8, 8);
+
+	let player = Player{ id : 0 };
+	let opponent = Player{ id : 1 };
+
+	let enemy_piece = ManPiece::new(&opponent);
+	let enemy_tile = OccupiedTile::new(Box::new(enemy_piece));
+	board.set_tile(enemy_row, enemy_col, Box::new(enemy_tile));
+
+	let result = find_jump_moves_for_king(
+		&board, &player, 4, 3);
+
+	assert_eq!(exp_result, result);
+}
+
+ptest!(test_single_jump [
+	single_jump_decr_rank_decr_file(5, 2, JumpMove::with_jumps(4, 3, vec![JumpMove::new(6, 1)])),
+	single_jump_decr_rank_incr_file(5, 4, JumpMove::with_jumps(4, 3, vec![JumpMove::new(6, 5)])),
+	single_jump_incr_rank_decr_file(3, 4, JumpMove::with_jumps(4, 3, vec![JumpMove::new(2, 5)])),
+	single_jump_incr_rank_incr_file(3, 2, JumpMove::with_jumps(4, 3, vec![JumpMove::new(2, 1)]))
+]);
+
+#[test]
+fn jump_multiple_directions() {
+	let mut board = Board::new(8, 8);
+
+	let player = Player{ id : 0 };
+	let opponent = Player{ id : 1 };
+
+	let enemy_piece1 = ManPiece::new(&opponent);
+	let enemy_tile1 = OccupiedTile::new(Box::new(enemy_piece1));
+	board.set_tile(3, 2, Box::new(enemy_tile1));
+
+	let enemy_piece2 = ManPiece::new(&opponent);
+	let enemy_tile2 = OccupiedTile::new(Box::new(enemy_piece2));
+	board.set_tile(3, 4, Box::new(enemy_tile2));
+
+	let enemy_piece3 = ManPiece::new(&opponent);
+	let enemy_tile3 = OccupiedTile::new(Box::new(enemy_piece3));
+	board.set_tile(5, 4, Box::new(enemy_tile3));
+
+	let enemy_piece4 = ManPiece::new(&opponent);
+	let enemy_tile4 = OccupiedTile::new(Box::new(enemy_piece4));
+	board.set_tile(5, 2, Box::new(enemy_tile4));
+
+	let start_row = 4;
+	let start_col = 3;
+
+	let result = find_jump_moves_for_king(
+		&board, &player, start_row, start_col);
+	let exp_result = JumpMove::with_jumps(
+		start_row,
+		start_col,
+		vec![
+			JumpMove::new(2, 1),
+			JumpMove::new(2, 5),
+			JumpMove::new(6, 1),
+			JumpMove::new(6, 5) ] );
+
+	assert_eq!(exp_result, result);
+}
+
+#[test]
+fn jump_in_a_circle() {
+	let mut board = Board::new(8, 8);
+
+	let player = Player{ id : 0 };
+	let opponent = Player{ id : 1 };
+
+	let start_row = 4;
+	let start_col = 1;
+
+	let friendly_piece = ManPiece::new(&player);
+	let friendly_tile = OccupiedTile::new(Box::new(friendly_piece));
+	board.set_tile(start_row, start_col, Box::new(friendly_tile));
+
+	let enemy_piece1 = ManPiece::new(&opponent);
+	let enemy_tile1 = OccupiedTile::new(Box::new(enemy_piece1));
+	board.set_tile(3, 2, Box::new(enemy_tile1));
+
+	let enemy_piece2 = ManPiece::new(&opponent);
+	let enemy_tile2 = OccupiedTile::new(Box::new(enemy_piece2));
+	board.set_tile(3, 4, Box::new(enemy_tile2));
+
+	let enemy_piece3 = ManPiece::new(&opponent);
+	let enemy_tile3 = OccupiedTile::new(Box::new(enemy_piece3));
+	board.set_tile(5, 4, Box::new(enemy_tile3));
+
+	let enemy_piece4 = ManPiece::new(&opponent);
+	let enemy_tile4 = OccupiedTile::new(Box::new(enemy_piece4));
+	board.set_tile(5, 2, Box::new(enemy_tile4));
+
+	let result = find_jump_moves_for_king(
+		&board, &player, start_row, start_col);
+	let exp_result = JumpMove::with_jumps(
+		start_row,
+		start_col,
+		vec![
+			JumpMove::with_jumps(2, 3, 
+				vec![JumpMove::with_jumps(4, 5,
+					vec![JumpMove::with_jumps(6, 3,
+						vec![JumpMove::new(start_row, start_col)])])]),			
+			JumpMove::with_jumps(6, 3, 
+				vec![JumpMove::with_jumps(4, 5,
+					vec![JumpMove::with_jumps(2, 3,
+						vec![JumpMove::new(start_row, start_col)])])])]);	
 
 	assert_eq!(exp_result, result);
 }
