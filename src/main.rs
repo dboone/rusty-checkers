@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate corrosion;
+
 mod checkers;
 use checkers::Board;
 use checkers::Player;
