@@ -48,16 +48,16 @@ impl Board {
             tiles : Vec::with_capacity(CHECKERS_NUMBER_TILES)
         };
 
-        Board::fill_odd_row(&mut board, player1);
         Board::fill_even_row(&mut board, player1);
         Board::fill_odd_row(&mut board, player1);
+        Board::fill_even_row(&mut board, player1);
 
         Board::fill_empty_row(&mut board);
         Board::fill_empty_row(&mut board);
 
-        Board::fill_even_row(&mut board, player2);
         Board::fill_odd_row(&mut board, player2);
         Board::fill_even_row(&mut board, player2);
+        Board::fill_odd_row(&mut board, player2);
 
         board
     }
