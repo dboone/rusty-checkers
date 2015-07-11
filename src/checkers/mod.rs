@@ -71,7 +71,7 @@ impl Board {
 	}
 
 	fn indices_to_index(&self, row : usize, column : usize) -> usize {
-        row + self.number_rows * column
+        self.number_columns * row + column
 	}
 	
     pub fn get_tile(&self, row : usize, column : usize) -> &Tile {
