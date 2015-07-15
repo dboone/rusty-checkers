@@ -46,8 +46,8 @@ pub fn find_simple_moves_for_man
 		col : usize)
 -> Vec<SimpleMove> {
 	let row_offset = match direction {
-		Direction::IncreasingRank => TileOffset::Negative(1),
-		Direction::DecreasingRank => TileOffset::Positive(1),
+		Direction::DecreasingRank => TileOffset::Negative(1),
+		Direction::IncreasingRank => TileOffset::Positive(1),
 	};
 
 	let mut moves = Vec::new();
@@ -291,9 +291,9 @@ fn push_jump_for_king_if_valid
 
 fn get_row_offsets(direction : &Direction) -> (TileOffset, TileOffset) {
 	let (pwnd_row_offset, jump_row_offset) = match *direction {
-		Direction::IncreasingRank =>
-			(TileOffset::Negative(1), TileOffset::Negative(2)),
 		Direction::DecreasingRank =>
+			(TileOffset::Negative(1), TileOffset::Negative(2)),
+		Direction::IncreasingRank =>
 			(TileOffset::Positive(1), TileOffset::Positive(2))
 	};
 
@@ -463,25 +463,25 @@ fn test_move
 
 ptest!(test_move [
 	no_moves_when_min_rank_and_decreasing_rank(
-		Direction::DecreasingRank, 7, 4, Vec::new()),
+		Direction::DecreasingRank, 0, 4, Vec::new()),
 
 	no_moves_when_max_rank_and_increasing_rank(
-		Direction::IncreasingRank, 0, 4, Vec::new()),
+		Direction::IncreasingRank, 7, 4, Vec::new()),
 
 	single_move_when_min_file(
-		Direction::IncreasingRank, 4, 0, vec![SimpleMove{to_row : 3, to_col : 1}]),
+		Direction::IncreasingRank, 4, 0, vec![SimpleMove{to_row : 5, to_col : 1}]),
 
 	single_move_when_max_file(
-		Direction::DecreasingRank, 3, 7, vec![SimpleMove{to_row : 4, to_col : 6}]),
+		Direction::DecreasingRank, 3, 7, vec![SimpleMove{to_row : 2, to_col : 6}]),
 
 	two_moves_when_middle_of_board_1(
-		Direction::DecreasingRank,
+		Direction::IncreasingRank,
 		3,
 		5,
 		vec![SimpleMove{to_row : 4, to_col : 4}, SimpleMove{to_row : 4, to_col : 6}]),
 
 	two_moves_when_middle_of_board_2(
-		Direction::IncreasingRank,
+		Direction::DecreasingRank,
 		1,
 		2,
 		vec![SimpleMove{to_row : 0, to_col : 1}, SimpleMove{to_row : 0, to_col : 3}])
@@ -507,10 +507,10 @@ fn test_move_blocked
 
 ptest!(test_move_blocked [
 	move_blocked_when_tile_occupied_1(
-		3, 3, Direction::IncreasingRank, 4, 4, vec![SimpleMove{to_row : 3, to_col : 5}]),
+		3, 3, Direction::DecreasingRank, 4, 4, vec![SimpleMove{to_row : 3, to_col : 5}]),
 
 	move_blocked_when_tile_occupied_2(
-		3, 5, Direction::IncreasingRank, 4, 4, vec![SimpleMove{to_row : 3, to_col : 3}])
+		3, 5, Direction::DecreasingRank, 4, 4, vec![SimpleMove{to_row : 3, to_col : 3}])
 ]);
 
 }
@@ -623,7 +623,7 @@ fn test_jumping_alone
 (start_row : usize, start_col : usize) {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0 };
-	let direction = Direction::DecreasingRank;
+	let direction = Direction::IncreasingRank;
 
 	let result = find_jump_moves_for_man(
 		&board, &player, &direction, start_row, start_col);
@@ -648,7 +648,7 @@ fn test_single_jump_single_enemy
 		exp_result : JumpMove) {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0 };
-	let direction = Direction::DecreasingRank;
+	let direction = Direction::IncreasingRank;
 
 	let opponent = Player{ id : 1 };
 
@@ -680,7 +680,7 @@ fn test_single_jump_two_enemies
 		exp_result : JumpMove) {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0 };
-	let direction = Direction::DecreasingRank;
+	let direction = Direction::IncreasingRank;
 
 	let opponent = Player{ id : 1 };
 
@@ -713,7 +713,7 @@ fn test_jumping_friendly_piece
 		friendly_col : usize) {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0 };
-	let direction = Direction::DecreasingRank;
+	let direction = Direction::IncreasingRank;
 
 	let left_piece = ManPiece::new(&player);
 	let left_tile = OccupiedTile::new(Box::new(left_piece));
@@ -741,7 +741,7 @@ fn test_single_jump_blocked
 		blocked_col : usize) {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0 };
-	let direction = Direction::DecreasingRank;
+	let direction = Direction::IncreasingRank;
 
 	let opponent = Player{ id : 1 };
 	let pwnd_piece = ManPiece::new(&opponent);
@@ -769,7 +769,7 @@ ptest!(test_single_jump_blocked [
 fn jumping_two_forward_adjacent_enemies_left_blocked() {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0 };
-	let direction = Direction::DecreasingRank;
+	let direction = Direction::IncreasingRank;
 	let start_row = 4;
 	let start_col = 3;
 
@@ -800,7 +800,7 @@ fn jumping_two_forward_adjacent_enemies_left_blocked() {
 fn jumping_two_forward_adjacent_enemies_right_blocked() {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0 };
-	let direction = Direction::DecreasingRank;
+	let direction = Direction::IncreasingRank;
 	let start_row = 4;
 	let start_col = 3;
 
@@ -831,7 +831,7 @@ fn jumping_two_forward_adjacent_enemies_right_blocked() {
 fn the_one_true_test() {
 	let mut board = Board::new(8, 8);
 	let player = Player{ id : 0 };
-	let direction = Direction::IncreasingRank;
+	let direction = Direction::DecreasingRank;
 
 	let opponent = Player{ id : 1 };
 
