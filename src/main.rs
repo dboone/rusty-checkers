@@ -16,8 +16,8 @@ fn print_justified_file<TWrite : Write>(writer : &mut TWrite, columns : usize, p
         try!(write!(writer, " "));
     }
 
+	let initial_file = 'A' as u32;
     for c in 0..columns {
-        let initial_file = 'A' as u32;
         let file = char::from_u32(initial_file + c as u32).unwrap();
         try!(write!(writer, " {} ", file));
     }
@@ -44,9 +44,9 @@ fn print_board<TWrite : Write>(writer : &mut TWrite, board : &Board) -> Result<(
 
     try!(print_justified_file(writer, board.number_columns(), file_padding));
 
-	for c in 0..board.number_columns() {
-        try!(print_justified_rank(writer, c + 1, rank_padding));
-		for r in 0..board.number_rows() {
+	for r in (0..board.number_rows()).rev() {
+        try!(print_justified_rank(writer, r + 1, rank_padding));
+		for c in 0..board.number_columns() {
 			let tile = board.get_tile(r, c);
 			let piece_str = match tile.get_piece() {
 				None => EMPTY_PIECE_STR,
@@ -55,7 +55,7 @@ fn print_board<TWrite : Write>(writer : &mut TWrite, board : &Board) -> Result<(
 			
 			try!(write!(writer, "[{}]", piece_str));
 		}
-		try!(writeln!(writer, " {} ", c + 1));
+		try!(writeln!(writer, " {} ", r + 1));
 	}
 
     try!(print_justified_file(writer, board.number_columns(), file_padding));
@@ -67,7 +67,8 @@ fn main() {
 
 	let player1 = Player{ id : 0 };
 	let player2 = Player{ id : 1 };
-    let board = Board::new_checkerboard(&player1, &player2);
+	let board = Board::new_checkerboard(&player1, &player2);
+
 	let mut writer = stdout();
 	print_board(&mut writer, &board).unwrap();
 }

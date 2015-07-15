@@ -48,16 +48,16 @@ impl Board {
             tiles : Vec::with_capacity(CHECKERS_NUMBER_TILES)
         };
 
-        Board::fill_odd_row(&mut board, player1);
         Board::fill_even_row(&mut board, player1);
         Board::fill_odd_row(&mut board, player1);
+        Board::fill_even_row(&mut board, player1);
 
         Board::fill_empty_row(&mut board);
         Board::fill_empty_row(&mut board);
 
-        Board::fill_even_row(&mut board, player2);
         Board::fill_odd_row(&mut board, player2);
         Board::fill_even_row(&mut board, player2);
+        Board::fill_odd_row(&mut board, player2);
 
         board
     }
@@ -71,7 +71,7 @@ impl Board {
 	}
 
 	fn indices_to_index(&self, row : usize, column : usize) -> usize {
-        row + self.number_rows * column
+        self.number_columns * row + column
 	}
 	
     pub fn get_tile(&self, row : usize, column : usize) -> &Tile {
