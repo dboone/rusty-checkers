@@ -3,6 +3,7 @@ use checkers::board::Board;
 
 use std::collections::HashSet;
 
+#[derive(Copy, Clone)]
 pub enum Direction {
 	/// The piece is moving such that its rank is increasing
 	IncreasingRank,
@@ -74,7 +75,7 @@ pub fn find_simple_moves_for_man
 pub fn find_jump_moves_for_man
 (board : &Board,
 		player : &Player,
-		direction : &Direction,
+		direction : Direction,
 		row : usize,
 		col : usize)
 -> JumpMove {
@@ -290,8 +291,8 @@ fn push_jump_for_king_if_valid
 	curr_jump_root.jumps.push(jump);
 }
 
-fn get_row_offsets(direction : &Direction) -> (TileOffset, TileOffset) {
-	let (pwnd_row_offset, jump_row_offset) = match *direction {
+fn get_row_offsets(direction : Direction) -> (TileOffset, TileOffset) {
+	let (pwnd_row_offset, jump_row_offset) = match direction {
 		Direction::DecreasingRank =>
 			(TileOffset::Negative(1), TileOffset::Negative(2)),
 		Direction::IncreasingRank =>
@@ -627,7 +628,7 @@ fn test_jumping_alone
 	let direction = Direction::IncreasingRank;
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	let exp_result = JumpMove::new(start_row, start_col);
 
@@ -658,7 +659,7 @@ fn test_single_jump_single_enemy
 	board.set_tile(enemy_row, enemy_col, Box::new(enemy_tile));
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	assert_eq!(exp_result, result);
 }
@@ -694,7 +695,7 @@ fn test_single_jump_two_enemies
 	board.set_tile(right_enemy_row, right_enemy_col, Box::new(right_enemy_tile));
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	assert_eq!(exp_result, result);
 }
@@ -721,7 +722,7 @@ fn test_jumping_friendly_piece
 	board.set_tile(friendly_row, friendly_col, Box::new(left_tile));
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	let exp_result = JumpMove::new(start_row, start_col);
 
@@ -754,7 +755,7 @@ fn test_single_jump_blocked
 	board.set_tile(blocked_row, blocked_col, Box::new(block_tile));
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	let exp_result = JumpMove::new(start_row, start_col);
 
@@ -789,7 +790,7 @@ fn jumping_two_forward_adjacent_enemies_left_blocked() {
 	board.set_tile(5, 4, Box::new(right_tile));
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	let exp_result = JumpMove::with_jumps(
 		start_row, start_col, vec![JumpMove::new(6, 5)]);
@@ -820,7 +821,7 @@ fn jumping_two_forward_adjacent_enemies_right_blocked() {
 	board.set_tile(5, 4, Box::new(right_tile));
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	let exp_result = JumpMove::with_jumps(
 		start_row, start_col, vec![JumpMove::new(6, 1)]);
@@ -872,7 +873,7 @@ fn the_one_true_test() {
 	let start_col = 3;
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	let exp_result = JumpMove::with_jumps(
 		start_row,
