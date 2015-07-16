@@ -1,8 +1,20 @@
 use checkers::Board;
 use checkers::Direction;
+use checkers::JumpMove;
 use checkers::Player;
+use checkers::SimpleMove;
 
 use std::collections::HashMap;
+
+pub enum GameState {
+	InProgress,
+	GameOver
+}
+
+pub enum MoveError {
+	InvalidMove,
+	ShouldHaveJumped
+}
 
 struct PlayerInfo {
 	player : Player,
@@ -38,6 +50,10 @@ impl Game {
 		&self.board
 	}
 	
+	pub fn apply_simple_move(&self, the_move : SimpleMove) -> Result<GameState, MoveError> {
+		Ok(GameState::InProgress)
+	}
+	
 	//TODO
 	// - receive player's move
 	// - compute available moves
@@ -47,4 +63,5 @@ impl Game {
 	//   - remove jumped pieces
 	//   - king pieces that reach other side
 	// - swap current player
+	// - check if game is over
 }
