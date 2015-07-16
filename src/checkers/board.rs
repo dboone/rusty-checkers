@@ -1,6 +1,4 @@
-use checkers::piece::KingPiece;
 use checkers::piece::ManPiece;
-use checkers::piece::Piece;
 
 use checkers::player::Player;
 
