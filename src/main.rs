@@ -7,6 +7,9 @@ use std::char;
 mod checkers;
 use checkers::Board;
 use checkers::Game;
+use checkers::GameState;
+use checkers::MoveError;
+use checkers::SimpleMove;
 
 const EMPTY_PIECE_STR : &'static str = " ";
 const OCCUPIED_PIECE_STR : &'static str = "O";
@@ -66,6 +69,18 @@ fn main() {
     println!("Welcome to Draughts!");
 
 	let game = Game::new();
+	match game.apply_simple_move(SimpleMove::new(3, 1)) {
+		Ok(state) => 
+			match state {
+				GameState::InProgress => { },
+				GameState::GameOver => { }
+			},
+		Err(error) =>
+			match error {
+				MoveError::InvalidMove => { },
+				MoveError::ShouldHaveJumped => { }
+			}
+	}
 
 	let mut writer = stdout();
 	print_board(&mut writer, game.board()).unwrap();
