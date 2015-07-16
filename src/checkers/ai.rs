@@ -1,4 +1,5 @@
 use checkers::player::Player;
+use checkers::board::Board;
 
 use std::collections::HashSet;
 
@@ -40,7 +41,7 @@ impl JumpMove {
 /// direction this man piece is moving, determines the simple
 /// moves available to this piece.
 pub fn find_simple_moves_for_man
-(board : &super::Board,
+(board : &Board,
 		direction : Direction,
 		row : usize,
 		col : usize)
@@ -71,7 +72,7 @@ pub fn find_simple_moves_for_man
 /// direction this man piece is moving, determines the simple
 /// moves available to this piece.
 pub fn find_jump_moves_for_man
-(board : &super::Board,
+(board : &Board,
 		player : &Player,
 		direction : &Direction,
 		row : usize,
@@ -88,7 +89,7 @@ pub fn find_jump_moves_for_man
 }
 
 fn find_jump_moves_for_man_rustcursive
-(board : &super::Board,
+(board : &Board,
 		player : &Player,
 		pwnd_row_offset : &TileOffset,
 		jump_row_offset : &TileOffset,
@@ -103,7 +104,7 @@ fn find_jump_moves_for_man_rustcursive
 }
 
 fn try_jump_moves_for_man
-(board : &super::Board,
+(board : &Board,
 		player : &Player,
 		pwnd_row_offset : &TileOffset,
 		jump_row_offset : &TileOffset,
@@ -162,7 +163,7 @@ impl BoardPosition {
 }
 
 pub fn find_jump_moves_for_king
-(board : &super::Board,
+(board : &Board,
 		player : &Player,
 		row : usize,
 		col : usize)
@@ -177,7 +178,7 @@ pub fn find_jump_moves_for_king
 }
 
 fn find_jump_moves_for_king_rustcursive
-(board : &super::Board,
+(board : &Board,
 		player : &Player,
 		init_position : BoardPosition,
 		curr_jump_root : &mut JumpMove,
@@ -228,7 +229,7 @@ fn find_jump_moves_for_king_rustcursive
 }
 
 fn push_jump_for_king_if_valid
-(board : &super::Board,
+(board : &Board,
 		player : &Player,
 		init_position : BoardPosition,
 		curr_jump_root : &mut JumpMove,
@@ -307,7 +308,7 @@ fn get_row_offsets(direction : &Direction) -> (TileOffset, TileOffset) {
 /// find_simple_moves_for_man function, because kings can move
 /// in all directions.
 pub fn find_simple_moves_for_king
-(board : &super::Board,
+(board : &Board,
 		row : usize,
 		col : usize)
 -> Vec<SimpleMove> {
@@ -347,7 +348,7 @@ pub fn find_simple_moves_for_king
 // checks if it is possible to make a simple move with the given row
 // and tile offset, and if so, adds the move to the vector
 fn push_simple_move_if_valid
-(board : &super::Board,
+(board : &Board,
 		start_row : usize,
 		start_col : usize,
 		row_offset : &TileOffset,
@@ -416,7 +417,7 @@ fn is_offset_value_in_range
 // checks if a tile on the board can be reached when
 // moving from one position on the board to another
 fn is_tile_offset_in_bounds
-(board : &super::Board,
+(board : &Board,
 		start_row : usize,
 		start_col : usize,
 		row_offset : &TileOffset,
