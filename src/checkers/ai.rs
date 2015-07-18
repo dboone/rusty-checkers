@@ -61,6 +61,18 @@ impl JumpMove {
 	fn with_jumps(from_row : usize, from_col : usize, jumps : Vec<JumpMove>) -> JumpMove {
 		JumpMove{ from_row : from_row, from_col : from_col, jumps : jumps }
 	}
+	
+	pub fn from_row(&self) -> usize {
+		self.from_row
+	}
+	
+	pub fn from_column(&self) -> usize {
+		self.from_col
+	}
+	
+	pub fn jumps(&self) -> &Vec<JumpMove> {
+		&self.jumps
+	}
 }
 
 /// Given the position of a main piece on a board, and the
