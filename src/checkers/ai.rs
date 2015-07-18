@@ -53,8 +53,7 @@ impl SimpleMove {
 	}
 }
 
-#[derive(Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct JumpMove {
 	from_row : usize,
 	from_col : usize,
@@ -80,6 +79,23 @@ impl JumpMove {
 	
 	pub fn jumps(&self) -> &Vec<JumpMove> {
 		&self.jumps
+	}
+	
+	pub fn contains_jump_sequence(&self, jumps : &[BoardPosition]) -> bool {
+		if jumps.len() == 0 {
+			true
+		} else {
+			self.contains_jump_sequence_recursive(jumps)
+		}
+	}
+	
+	fn contains_jump_sequence_recursive(&self, jumps : &[BoardPosition]) -> bool {
+		if jumps[0].row == self.from_row && jumps[0].column == self.from_col {
+			jumps.len() == 1 || self.jumps.iter()
+					.any(|subtree| subtree.contains_jump_sequence(&jumps[1..]))
+		} else {
+			false
+		}
 	}
 }
 
@@ -466,6 +482,131 @@ fn is_tile_offset_in_bounds
 
 #[cfg(test)]
 mod test {
+
+mod jump_tree {
+	use super::super::JumpMove;
+	use checkers::BoardPosition;
+	
+	#[test]
+	fn empty_sequence() {
+		let jump_tree = JumpMove::new(0, 0);
+		let result = jump_tree.contains_jump_sequence(&Vec::new());
+		assert_eq!(true, result);
+	}
+	
+	#[test]
+	fn single_element_sequence_matching_start_position() {
+		let jump_tree = JumpMove::new(0, 0);
+		let jumps = vec![BoardPosition::new(0, 0)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(true, result);
+	}
+	
+	#[test]
+	fn single_element_sequence_different_start_position() {
+		let jump_tree = JumpMove::new(0, 0);
+		let jumps = vec![BoardPosition::new(1, 1)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(false, result);
+	}
+	
+	#[test]
+	fn single_jump_empty_tree() {
+		let jump_tree = JumpMove::new(0, 0);
+		let jumps = vec![BoardPosition::new(0, 0), BoardPosition::new(2, 2)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(false, result);
+	}
+	
+	#[test]
+	fn single_jump_tree_containing_jump() {
+		let jump_tree = JumpMove::with_jumps(0, 0, vec![JumpMove::new(2, 2)]);
+		let jumps = vec![BoardPosition::new(0, 0), BoardPosition::new(2, 2)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(true, result);
+	}
+	
+	#[test]
+	fn single_jump_tree_missing_jump() {
+		let jump_tree = JumpMove::with_jumps(2, 2, vec![JumpMove::new(2, 0)]);
+		let jumps = vec![BoardPosition::new(2, 2), BoardPosition::new(2, 4)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(false, result);
+	}
+	
+	#[test]
+	fn branching_jump_tree_containing_jump() {
+		let jump_tree = JumpMove::with_jumps(
+			5, 5, vec![
+				JumpMove::new(3, 3),
+				JumpMove::new(3, 7),
+				JumpMove::new(7, 3),
+				JumpMove::new(7, 7)]);
+				
+		let jumps = vec![BoardPosition::new(5, 5), BoardPosition::new(7, 3)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(true, result);
+	}
+	
+	#[test]
+	fn branching_jump_tree_missing_jump() {
+		let jump_tree = JumpMove::with_jumps(
+			5, 5, vec![
+				JumpMove::new(3, 3),
+				JumpMove::new(3, 7),
+				JumpMove::new(7, 3),
+				JumpMove::new(7, 7)]);
+				
+		let jumps = vec![BoardPosition::new(5, 5), BoardPosition::new(5, 5)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(false, result);
+	}
+	
+	#[test]
+	fn multi_jump_tree_containing_single_jump() {
+		let jump_tree = JumpMove::with_jumps(
+			5, 5, vec![
+				JumpMove::with_jumps(
+					3, 3, vec![
+						JumpMove::new(1, 1)])]);
+				
+		let jumps = vec![BoardPosition::new(5, 5), BoardPosition::new(3, 3)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(true, result);
+	}
+	
+	#[test]
+	fn multi_jump_tree_missing_single_jump() {
+		let jump_tree = JumpMove::with_jumps(
+			5, 5, vec![
+				JumpMove::with_jumps(
+					3, 3, vec![
+						JumpMove::new(1, 1)])]);
+				
+		let jumps = vec![
+			BoardPosition::new(5, 5),
+			BoardPosition::new(3, 3),
+			BoardPosition::new(5, 5)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(false, result);
+	}
+	
+	#[test]
+	fn multi_jump_tree_containing_multi_jump() {
+		let jump_tree = JumpMove::with_jumps(
+			5, 5, vec![
+				JumpMove::with_jumps(
+					3, 3, vec![
+						JumpMove::new(1, 1)])]);
+		
+		let jumps = vec![
+			BoardPosition::new(5, 5),
+			BoardPosition::new(3, 3),
+			BoardPosition::new(1, 1)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(true, result);
+	}
+}
 
 mod simple_move {
 
