@@ -168,6 +168,11 @@ impl Game {
 		self.current_player_index = 1 - self.current_player_index;
 	}
 	
+	fn is_game_over(&self) -> bool {
+		self.available_simple_moves.is_empty()
+			&& self.available_jump_moves.is_empty()
+	}
+	
 	pub fn apply_simple_move(&mut self, the_move : SimpleMove) -> Result<GameState, MoveError> {
 		if self.available_jump_moves.is_empty() {
 			if self.available_simple_moves.contains(&the_move) {
@@ -181,10 +186,13 @@ impl Game {
 					the_move.to_row(), the_move.to_column());
 				
 				self.select_next_player();
-		
 				self.find_available_moves();
 				
-				Ok(GameState::InProgress)
+				if self.is_game_over() {
+					Ok(GameState::GameOver)
+				} else {
+					Ok(GameState::InProgress)
+				}
 			} else {
 				Err(MoveError::InvalidMove)
 			}
@@ -193,13 +201,11 @@ impl Game {
 		}
 	}
 	
-	//TODO
-	// - receive jump move
-	// - check that player's move is one of the available moves
-	// - apply player's move
-	//   - move chosen piece
-	//   - remove jumped pieces
-	// - check if game is over
+	//TODO apply_jump_move
+	// - check that move is one of the available jumps
+	// - move jumping piece
+	// - remove jumped pieces
+	// - update game state same as apply_simple_move
 }
 
 #[cfg(test)]
@@ -241,4 +247,6 @@ mod test {
 	//TODO test applying a simple move when a jump is available
 	
 	//TODO test that coronation works
+	
+	//TODO test that game over is correctly detected
 }
