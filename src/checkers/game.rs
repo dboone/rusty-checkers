@@ -119,11 +119,16 @@ impl Game {
 		&self.board
 	}
 	
-	pub fn apply_simple_move(&self, the_move : SimpleMove) -> Result<GameState, MoveError> {
+	pub fn apply_simple_move(&mut self, the_move : SimpleMove) -> Result<GameState, MoveError> {
 		let jump_moves = self.find_available_jump_moves();
 		if jump_moves.is_empty() {
 			let simple_moves = self.find_available_simple_moves();
 			if simple_moves.contains(&the_move) {
+				self.board.swap_tiles(
+					the_move.from_row(),
+					the_move.from_column(),
+					the_move.to_row(),
+					the_move.to_column());
 				Ok(GameState::InProgress)
 			} else {
 				Err(MoveError::InvalidMove)
@@ -152,18 +157,26 @@ mod test {
 
 	#[test]
 	fn test_good_simple_move() {
-		let game = Game::new();
+		let mut game = Game::new();
 		let result = game.apply_simple_move(SimpleMove::new(2, 0, 3, 1));
 		let exp_result : Result<GameState, MoveError> = Ok(GameState::InProgress);
 		assert_eq!(exp_result, result);
+		
+		//TODO this test should be more thorough (e.g. check the piece
+		// type, player ID, etc.), but it's good enough for now
+		assert!(game.board().get_tile(3, 1).get_piece().is_some());
 	}
 	
 	#[test]
 	fn test_bad_simple_move() {
-		let game = Game::new();
+		let mut game = Game::new();
 		let result = game.apply_simple_move(SimpleMove::new(2, 0, 3, 0));
 		let exp_result : Result<GameState, MoveError> = Err(MoveError::InvalidMove);
 		assert_eq!(exp_result, result);
+		
+		//TODO this test should be more thorough (e.g. check the piece
+		// type, player ID, etc.), but it's good enough for now
+		assert!(game.board().get_tile(3, 0).get_piece().is_none());
 	}
 	
 	//TODO test applying a simple move when a jump is available
