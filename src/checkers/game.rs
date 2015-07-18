@@ -121,6 +121,10 @@ impl Game {
 		&self.board
 	}
 	
+	pub fn current_player(&self) -> &Player {
+		&self.current_player_info().player
+	}
+	
 	fn check_for_coronation
 	(&mut self, row : usize, col : usize) {
 		let coronate = match self.board.get_tile(row, col).get_piece() {
@@ -144,6 +148,10 @@ impl Game {
 		}
 	}
 	
+	fn select_next_player(&mut self) {
+		self.current_player_index = 1 - self.current_player_index;
+	}
+	
 	pub fn apply_simple_move(&mut self, the_move : SimpleMove) -> Result<GameState, MoveError> {
 		let jump_moves = self.find_available_jump_moves();
 		if jump_moves.is_empty() {
@@ -157,7 +165,9 @@ impl Game {
 				
 				self.check_for_coronation(
 					the_move.to_row(), the_move.to_column());
-					
+				
+				self.select_next_player();
+				
 				Ok(GameState::InProgress)
 			} else {
 				Err(MoveError::InvalidMove)
@@ -173,7 +183,6 @@ impl Game {
 	// - apply player's move
 	//   - move chosen piece
 	//   - remove jumped pieces
-	// - swap current player
 	// - check if game is over
 }
 
@@ -190,6 +199,9 @@ mod test {
 		let exp_result : Result<GameState, MoveError> = Ok(GameState::InProgress);
 		assert_eq!(exp_result, result);
 		
+		let player_id = game.current_player().id;
+		assert_eq!(2, player_id);
+		
 		//TODO this test should be more thorough (e.g. check the piece
 		// type, player ID, etc.), but it's good enough for now
 		assert!(game.board().get_tile(3, 1).get_piece().is_some());
@@ -201,6 +213,9 @@ mod test {
 		let result = game.apply_simple_move(SimpleMove::new(2, 0, 3, 0));
 		let exp_result : Result<GameState, MoveError> = Err(MoveError::InvalidMove);
 		assert_eq!(exp_result, result);
+		
+		let player_id = game.current_player().id;
+		assert_eq!(1, player_id);
 		
 		//TODO this test should be more thorough (e.g. check the piece
 		// type, player ID, etc.), but it's good enough for now
