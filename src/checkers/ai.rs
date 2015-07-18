@@ -1,5 +1,6 @@
 use checkers::player::Player;
 use checkers::board::Board;
+use checkers::board::BoardPosition;
 
 use std::collections::HashSet;
 
@@ -13,8 +14,7 @@ pub enum Direction {
 }
 
 // A move from one tile to an adjacent diagonal one
-#[derive(Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct SimpleMove {
 	from_row : usize,
 	from_col : usize,
@@ -194,18 +194,6 @@ fn try_jump_moves_for_man
 		board, player, &pwnd_row_offset, &jump_row_offset, &mut the_move);
 
 	jumps.jumps.push(the_move);
-}
-
-#[derive(PartialEq, Eq, Hash, Copy, Clone)]
-struct BoardPosition {
-	row : usize,
-	column : usize
-}
-
-impl BoardPosition {
-	fn new(row : usize, column : usize) -> BoardPosition {
-		BoardPosition{row : row, column : column}
-	}
 }
 
 pub fn find_jump_moves_for_king

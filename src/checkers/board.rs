@@ -6,6 +6,18 @@ use checkers::tile::EmptyTile;
 use checkers::tile::OccupiedTile;
 use checkers::tile::Tile;
 
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
+pub struct BoardPosition {
+	pub row : usize,
+	pub column : usize
+}
+
+impl BoardPosition {
+	pub fn new(row : usize, column : usize) -> BoardPosition {
+		BoardPosition{row : row, column : column}
+	}
+}
+
 pub struct Board {
     number_rows : usize,
     number_columns : usize,
