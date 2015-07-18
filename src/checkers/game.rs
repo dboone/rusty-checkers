@@ -7,11 +7,13 @@ use checkers::PieceType;
 use checkers::Player;
 use checkers::SimpleMove;
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum GameState {
 	InProgress,
 	GameOver
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum MoveError {
 	InvalidMove,
 	ShouldHaveJumped
@@ -118,20 +120,51 @@ impl Game {
 	}
 	
 	pub fn apply_simple_move(&self, the_move : SimpleMove) -> Result<GameState, MoveError> {
-		let simple_moves = self.find_available_simple_moves();
 		let jump_moves = self.find_available_jump_moves();
-	
-		Ok(GameState::InProgress)
+		if jump_moves.is_empty() {
+			let simple_moves = self.find_available_simple_moves();
+			if simple_moves.contains(&the_move) {
+				Ok(GameState::InProgress)
+			} else {
+				Err(MoveError::InvalidMove)
+			}
+		} else {
+			Err(MoveError::ShouldHaveJumped)
+		}
 	}
 	
 	//TODO
 	// - receive jump move
 	// - check that player's move is one of the available moves
-	// - check that player is taking a jump if they have to
 	// - apply player's move
 	//   - move chosen piece
 	//   - remove jumped pieces
 	//   - king man pieces that reach other side
 	// - swap current player
 	// - check if game is over
+}
+
+#[cfg(test)]
+mod test {
+	use super::*;
+	
+	use checkers::SimpleMove;
+
+	#[test]
+	fn test_good_simple_move() {
+		let game = Game::new();
+		let result = game.apply_simple_move(SimpleMove::new(2, 0, 3, 1));
+		let exp_result : Result<GameState, MoveError> = Ok(GameState::InProgress);
+		assert_eq!(exp_result, result);
+	}
+	
+	#[test]
+	fn test_bad_simple_move() {
+		let game = Game::new();
+		let result = game.apply_simple_move(SimpleMove::new(2, 0, 3, 0));
+		let exp_result : Result<GameState, MoveError> = Err(MoveError::InvalidMove);
+		assert_eq!(exp_result, result);
+	}
+	
+	//TODO test applying a simple move when a jump is available
 }
