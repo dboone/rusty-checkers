@@ -36,6 +36,14 @@ impl SimpleMove {
 			to_col : to_column}
 	}
 	
+	pub fn from_row(&self) -> usize {
+		self.from_row
+	}
+	
+	pub fn from_column(&self) -> usize {
+		self.from_col
+	}
+	
 	pub fn to_row(&self) -> usize {
 		self.to_row
 	}
