@@ -69,7 +69,7 @@ fn main() {
     println!("Welcome to Draughts!");
 
 	let game = Game::new();
-	match game.apply_simple_move(SimpleMove::new(3, 1)) {
+	match game.apply_simple_move(SimpleMove::new(2, 0, 3, 1)) {
 		Ok(state) => 
 			match state {
 				GameState::InProgress => { },

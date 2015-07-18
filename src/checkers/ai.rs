@@ -16,13 +16,24 @@ pub enum Direction {
 #[derive(Debug)]
 #[derive(PartialEq, Eq)]
 pub struct SimpleMove {
+	from_row : usize,
+	from_col : usize,
 	to_row : usize,
 	to_col : usize
 }
 
 impl SimpleMove {
-	pub fn new(to_row : usize, to_column : usize) -> SimpleMove {
-		SimpleMove{to_row : to_row, to_col : to_column}
+	pub fn new
+	(from_row : usize,
+			from_column : usize,
+			to_row : usize,
+			to_column : usize)
+	-> SimpleMove{
+		SimpleMove{
+			from_row : from_row,
+			from_col : from_column,
+			to_row : to_row,
+			to_col : to_column}
 	}
 	
 	pub fn to_row(&self) -> usize {
@@ -376,7 +387,8 @@ fn push_simple_move_if_valid
 			= offset_tile(start_row, start_col, &row_offset, &col_offset);
 		let tile = board.get_tile(offset_row, offset_col);
 		if tile.get_piece().is_none() {
-			let the_move = SimpleMove::new(offset_row, offset_col);
+			let the_move = SimpleMove::new(
+				start_row, start_col, offset_row, offset_col);
 			moves.push(the_move);
 		}
 	}
@@ -484,22 +496,22 @@ ptest!(test_move [
 		Direction::IncreasingRank, 7, 4, Vec::new()),
 
 	single_move_when_min_file(
-		Direction::IncreasingRank, 4, 0, vec![SimpleMove::new(5, 1)]),
+		Direction::IncreasingRank, 4, 0, vec![SimpleMove::new(4, 0, 5, 1)]),
 
 	single_move_when_max_file(
-		Direction::DecreasingRank, 3, 7, vec![SimpleMove::new(2, 6)]),
+		Direction::DecreasingRank, 3, 7, vec![SimpleMove::new(3, 7, 2, 6)]),
 
 	two_moves_when_middle_of_board_1(
 		Direction::IncreasingRank,
 		3,
 		5,
-		vec![SimpleMove::new(4, 4), SimpleMove::new(4, 6)]),
+		vec![SimpleMove::new(3, 5, 4, 4), SimpleMove::new(3, 5, 4, 6)]),
 
 	two_moves_when_middle_of_board_2(
 		Direction::DecreasingRank,
 		1,
 		2,
-		vec![SimpleMove::new(0, 1), SimpleMove::new(0, 3)])
+		vec![SimpleMove::new(1, 2, 0, 1), SimpleMove::new(1, 2, 0, 3)])
 ]);
 
 fn test_move_blocked
@@ -522,10 +534,10 @@ fn test_move_blocked
 
 ptest!(test_move_blocked [
 	move_blocked_when_tile_occupied_1(
-		3, 3, Direction::DecreasingRank, 4, 4, vec![SimpleMove::new(3, 5)]),
+		3, 3, Direction::DecreasingRank, 4, 4, vec![SimpleMove::new(4, 4, 3, 5)]),
 
 	move_blocked_when_tile_occupied_2(
-		3, 5, Direction::DecreasingRank, 4, 4, vec![SimpleMove::new(3, 3)])
+		3, 5, Direction::DecreasingRank, 4, 4, vec![SimpleMove::new(4, 4, 3, 3)])
 ]);
 
 }
@@ -558,23 +570,23 @@ fn test_move
 
 ptest!(test_move [
 	single_move_when_min_rank_and_min_file(
-		7, 0, vec![SimpleMove::new(6, 1)]),
+		7, 0, vec![SimpleMove::new(7, 0, 6, 1)]),
 
 	single_move_when_min_rank_and_max_file(
-		7, 7, vec![SimpleMove::new(6, 6)]),
+		7, 7, vec![SimpleMove::new(7, 7, 6, 6)]),
 
 	single_move_when_max_rank_and_min_file(
-		0, 0, vec![SimpleMove::new(1, 1)]),
+		0, 0, vec![SimpleMove::new(0, 0, 1, 1)]),
 
 	single_move_when_max_rank_and_max_file(
-		0, 7, vec![SimpleMove::new(1, 6)]),
+		0, 7, vec![SimpleMove::new(0, 7, 1, 6)]),
 
 	four_moves_when_middle_of_board(
 		3, 5, vec![
-			SimpleMove::new(2, 4),
-			SimpleMove::new(2, 6),
-			SimpleMove::new(4, 4),
-			SimpleMove::new(4, 6)])
+			SimpleMove::new(3, 5, 2, 4),
+			SimpleMove::new(3, 5, 2, 6),
+			SimpleMove::new(3, 5, 4, 4),
+			SimpleMove::new(3, 5, 4, 6)])
 ]);
 
 fn test_move_blocked
@@ -597,27 +609,27 @@ fn test_move_blocked
 ptest!(test_move_blocked [
 	move_blocked_when_tile_occupied_1(
 		2, 4, 3, 5, vec![
-			SimpleMove::new(2, 6),
-			SimpleMove::new(4, 4),
-			SimpleMove::new(4, 6)]),
+			SimpleMove::new(3, 5, 2, 6),
+			SimpleMove::new(3, 5, 4, 4),
+			SimpleMove::new(3, 5, 4, 6)]),
 
 	move_blocked_when_tile_occupied_2(
 		2, 6, 3, 5, vec![
-			SimpleMove::new(2, 4),
-			SimpleMove::new(4, 4),
-			SimpleMove::new(4, 6)]),
+			SimpleMove::new(3, 5, 2, 4),
+			SimpleMove::new(3, 5, 4, 4),
+			SimpleMove::new(3, 5, 4, 6)]),
 
 	move_blocked_when_tile_occupied_3(
 		4, 4, 3, 5, vec![
-			SimpleMove::new(2, 4),
-			SimpleMove::new(2, 6),
-			SimpleMove::new(4, 6)]),
+			SimpleMove::new(3, 5, 2, 4),
+			SimpleMove::new(3, 5, 2, 6),
+			SimpleMove::new(3, 5, 4, 6)]),
 
 	move_blocked_when_tile_occupied_4(
 		4, 6, 3, 5, vec![
-			SimpleMove::new(2, 4),
-			SimpleMove::new(2, 6),
-			SimpleMove::new(4, 4)])
+			SimpleMove::new(3, 5, 2, 4),
+			SimpleMove::new(3, 5, 2, 6),
+			SimpleMove::new(3, 5, 4, 4)])
 ]);
 
 }
