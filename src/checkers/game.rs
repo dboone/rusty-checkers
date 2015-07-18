@@ -9,6 +9,8 @@ use checkers::PieceType;
 use checkers::Player;
 use checkers::SimpleMove;
 
+use std::collections::HashMap;
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum GameState {
 	InProgress,
@@ -30,7 +32,10 @@ pub struct Game {
 	players : [PlayerInfo; 2],
 	board : Board,
 	
-	current_player_index : usize
+	current_player_index : usize,
+	
+	available_simple_moves : Vec<SimpleMove>,
+	available_jump_moves : Vec<JumpMove>
 }
 
 impl Game {
@@ -45,10 +50,16 @@ impl Game {
 		let player2_info = PlayerInfo{
 			player : player2, direction : Direction::DecreasingRank};
 		
-		Game{
+		let mut game = Game{
 			players : [player1_info, player2_info],
 			board : board,
-			current_player_index : 0}
+			current_player_index : 0,
+			available_simple_moves : Vec::new(),
+			available_jump_moves : Vec::new()};
+			
+		game.find_available_moves();
+		
+		game
 	}
 	
 	fn current_player_info(&self) -> &PlayerInfo {
@@ -117,6 +128,11 @@ impl Game {
 		moves
 	}
 	
+	fn find_available_moves(&mut self) {
+		self.available_simple_moves = self.find_available_simple_moves();
+		self.available_jump_moves = self.find_available_jump_moves();
+	}
+	
 	pub fn board(&self) -> &Board {
 		&self.board
 	}
@@ -153,10 +169,8 @@ impl Game {
 	}
 	
 	pub fn apply_simple_move(&mut self, the_move : SimpleMove) -> Result<GameState, MoveError> {
-		let jump_moves = self.find_available_jump_moves();
-		if jump_moves.is_empty() {
-			let simple_moves = self.find_available_simple_moves();
-			if simple_moves.contains(&the_move) {
+		if self.available_jump_moves.is_empty() {
+			if self.available_simple_moves.contains(&the_move) {
 				self.board.swap_tiles(
 					the_move.from_row(),
 					the_move.from_column(),
@@ -167,6 +181,8 @@ impl Game {
 					the_move.to_row(), the_move.to_column());
 				
 				self.select_next_player();
+		
+				self.find_available_moves();
 				
 				Ok(GameState::InProgress)
 			} else {
