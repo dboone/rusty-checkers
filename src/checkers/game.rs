@@ -101,7 +101,9 @@ impl Game {
 									ai::find_jump_moves_for_king(
 										&self.board, curr_player, r, c),
 							};
-							moves.push(jump_move);
+							if !jump_move.jumps().is_empty() {
+								moves.push(jump_move);
+							}
 						},
 					None => {}
 				}
