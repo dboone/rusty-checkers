@@ -3,6 +3,8 @@ use checkers::ai;
 use checkers::Board;
 use checkers::Direction;
 use checkers::JumpMove;
+use checkers::KingPiece;
+use checkers::OccupiedTile;
 use checkers::PieceType;
 use checkers::Player;
 use checkers::SimpleMove;
@@ -119,6 +121,29 @@ impl Game {
 		&self.board
 	}
 	
+	fn check_for_coronation
+	(&mut self, row : usize, col : usize) {
+		let coronate = match self.board.get_tile(row, col).get_piece() {
+			Some(piece) =>
+				match piece.get_type() {
+					PieceType::Man =>
+						match self.current_player_info().direction {
+							Direction::IncreasingRank =>
+								row + 1 == self.board.number_rows(),
+							Direction::DecreasingRank => row == 0
+						},
+					PieceType::King => false
+				},
+			None => unreachable!()
+		};
+		
+		if coronate {
+			let king = KingPiece::new(&self.current_player_info().player);
+			let tile = OccupiedTile::new(Box::new(king));
+			self.board.set_tile(row, col, Box::new(tile))
+		}
+	}
+	
 	pub fn apply_simple_move(&mut self, the_move : SimpleMove) -> Result<GameState, MoveError> {
 		let jump_moves = self.find_available_jump_moves();
 		if jump_moves.is_empty() {
@@ -129,6 +154,10 @@ impl Game {
 					the_move.from_column(),
 					the_move.to_row(),
 					the_move.to_column());
+				
+				self.check_for_coronation(
+					the_move.to_row(), the_move.to_column());
+					
 				Ok(GameState::InProgress)
 			} else {
 				Err(MoveError::InvalidMove)
@@ -144,7 +173,6 @@ impl Game {
 	// - apply player's move
 	//   - move chosen piece
 	//   - remove jumped pieces
-	//   - king man pieces that reach other side
 	// - swap current player
 	// - check if game is over
 }
@@ -180,4 +208,6 @@ mod test {
 	}
 	
 	//TODO test applying a simple move when a jump is available
+	
+	//TODO test that coronation works
 }
