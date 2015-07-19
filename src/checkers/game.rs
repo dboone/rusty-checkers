@@ -1,6 +1,7 @@
 use checkers::ai;
 
 use checkers::Board;
+use checkers::BoardPosition;
 use checkers::Direction;
 use checkers::JumpMove;
 use checkers::KingPiece;
@@ -173,6 +174,21 @@ impl Game {
 			&& self.available_jump_moves.is_empty()
 	}
 	
+	fn finish_move
+	(&mut self, final_row : usize, final_col : usize)
+	-> GameState {
+		self.check_for_coronation(final_row, final_col);
+		
+		self.select_next_player();
+		self.find_available_moves();
+		
+		if self.is_game_over() {
+			GameState::GameOver
+		} else {
+			GameState::InProgress
+		}
+	}
+	
 	pub fn apply_simple_move(&mut self, the_move : SimpleMove) -> Result<GameState, MoveError> {
 		if self.available_jump_moves.is_empty() {
 			if self.available_simple_moves.contains(&the_move) {
@@ -182,17 +198,9 @@ impl Game {
 					the_move.to_row(),
 					the_move.to_column());
 				
-				self.check_for_coronation(
+				let game_state = self.finish_move(
 					the_move.to_row(), the_move.to_column());
-				
-				self.select_next_player();
-				self.find_available_moves();
-				
-				if self.is_game_over() {
-					Ok(GameState::GameOver)
-				} else {
-					Ok(GameState::InProgress)
-				}
+				Ok(game_state)
 			} else {
 				Err(MoveError::InvalidMove)
 			}
@@ -201,17 +209,42 @@ impl Game {
 		}
 	}
 	
-	//TODO apply_jump_move
-	// - check that move is one of the available jumps
-	// - move jumping piece
-	// - remove jumped pieces
-	// - update game state same as apply_simple_move
+	pub fn apply_jump_move(&mut self, the_move : Vec<BoardPosition>) -> Result<GameState, MoveError> {
+		let jump_valid = self.available_jump_moves.iter()
+			.any(|jump_tree| jump_tree.contains_jump_sequence(&the_move));
+		if jump_valid {
+			let start_position = the_move.first().unwrap();
+			let final_position = the_move.last().unwrap();
+			
+			// move the jumping piece
+			self.board.swap_tiles(
+				start_position.row,
+				start_position.column,
+				final_position.row,
+				final_position.column);
+			
+			// remove all jumped pieces
+			let iter = the_move[0..].iter().zip(the_move[1..].iter());
+			for (jump_from_pos, jump_to_pos) in iter {
+				let jumped_row = jump_from_pos.row + jump_to_pos.row / 2;
+				let jumped_col = jump_from_pos.column + jump_to_pos.column / 2;
+				self.board.clear_tile(jumped_row, jumped_col);
+			}
+
+			let game_state = self.finish_move(
+				final_position.row, final_position.column);
+			Ok(game_state)
+		} else {
+			Err(MoveError::InvalidMove)
+		}
+	}
 }
 
 #[cfg(test)]
 mod test {
 	use super::*;
 	
+	use checkers::BoardPosition;
 	use checkers::SimpleMove;
 
 	#[test]
@@ -244,9 +277,28 @@ mod test {
 		assert!(game.board().get_tile(3, 0).get_piece().is_none());
 	}
 	
+	#[test]
+	fn test_bad_jump_move() {
+		let mut game = Game::new();
+		let result = game.apply_jump_move(
+			vec![BoardPosition::new(2, 0), BoardPosition::new(4, 2)]);
+		let exp_result : Result<GameState, MoveError> = Err(MoveError::InvalidMove);
+		assert_eq!(exp_result, result);
+		
+		let player_id = game.current_player().id;
+		assert_eq!(1, player_id);
+		
+		//TODO these tests should be more thorough (e.g. check the piece
+		// type, player ID, etc.), but it's good enough for now
+		assert!(game.board().get_tile(2, 0).get_piece().is_some());
+		assert!(game.board().get_tile(4, 2).get_piece().is_none());
+	}
+	
 	//TODO test applying a simple move when a jump is available
 	
 	//TODO test that coronation works
 	
 	//TODO test that game over is correctly detected
+	
+	//TODO test applying a good jump move
 }
