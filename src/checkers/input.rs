@@ -1,3 +1,5 @@
+use checkers::ai::BoardPosition;
+
 pub enum InputError {
 	TooFewTokens,
 	InvalidTokens { tokens : Vec<TokenError> }
@@ -14,7 +16,7 @@ pub enum TokenError {
 ///
 /// Parse a move from a string
 ///
-pub fn parse_move(the_move : &str) -> Result<Vec<(usize, usize)>, InputError> {
+pub fn parse_move(the_move : &str) -> Result<Vec<BoardPosition>, InputError> {
 	let results : Vec<_> = the_move.split_whitespace()
 		.map(token_validator)
 		.collect();
@@ -52,7 +54,7 @@ pub fn parse_move(the_move : &str) -> Result<Vec<(usize, usize)>, InputError> {
 // Expects a strict sequence of alphabetic characters (rank)
 // followed by a sequence of numeric characters (file).
 //
-fn token_validator(token : &str) -> Result<(usize, usize), TokenError> {	
+fn token_validator(token : &str) -> Result<BoardPosition, TokenError> {	
 	let (file, rank) = try!(parse_file_rank(token));
 
 	if file.is_empty() {
@@ -69,7 +71,7 @@ fn token_validator(token : &str) -> Result<(usize, usize), TokenError> {
 		return Err(TokenError::ZeroRank { token : token.to_string() });
 	}
 
-	Ok((row - 1, col - 1))
+	Ok(BoardPosition::new(row - 1, col - 1))
 }
 
 enum ParseState {
@@ -154,24 +156,26 @@ fn char_to_position( c : char ) -> usize {
 mod test {
 
 use super::*;
+use checkers::BoardPosition;
 
-fn test_parse_move(the_move : &str, exp_result : Vec<(usize, usize)>) {
+fn test_parse_move(the_move : &str, exp_result : Vec<BoardPosition>) {
 	let result = parse_move(the_move).ok().unwrap();
 	
 	assert_eq!(exp_result, result);
 }
 
 ptest!(test_parse_move[
-	test_parse_move_a1_a1("a1 a1", vec![(0, 0), (0, 0)]),
-	test_parse_move_a2_a1("a2 a1", vec![(0, 1), (0, 0)]),
-	test_parse_move_a1_a2("a1 a2", vec![(0, 0), (0, 1)]),
-	test_parse_move_a2_a2("a2 a2", vec![(0, 1), (0, 1)]),
-	test_parse_move_aa1_aa1("aa1 aa1", vec![(26, 0), (26, 0)]),
-	test_parse_move_aa1_ab1("aa1 ab1", vec![(26, 0), (27, 0)]),
-	test_parse_move_ab1_aa1("ab1 aa1", vec![(27, 0), (26, 0)]),
-	test_parse_move_yy99_zz99("yy99 zz99", vec![(674, 98), (701, 98)]),
-	test_parse_move_aaa99_aaa99("aaa99 aaa99", vec![(702, 98), (702, 98)]),
-	test_parse_move_xfd13_ahh37("xfd13 ahh37", vec![(16383, 12), (891, 36)])
+	test_parse_move_a1_a1("a1 a1", vec![BoardPosition::new(0, 0), BoardPosition::new(0, 0)]),
+	test_parse_move_a2_a1("a2 a1", vec![BoardPosition::new(0, 1), BoardPosition::new(0, 0)]),
+	test_parse_move_a1_a2("a1 a2", vec![BoardPosition::new(0, 0), BoardPosition::new(0, 1)]),
+	test_parse_move_a2_a2("a2 a2", vec![BoardPosition::new(0, 1), BoardPosition::new(0, 1)]),
+	test_parse_move_aa1_aa1("aa1 aa1", vec![BoardPosition::new(26, 0), BoardPosition::new(26, 0)]),
+	test_parse_move_aa1_ab1("aa1 ab1", vec![BoardPosition::new(26, 0), BoardPosition::new(27, 0)]),
+	test_parse_move_ab1_aa1("ab1 aa1", vec![BoardPosition::new(27, 0), BoardPosition::new(26, 0)]),
+	test_parse_move_yy99_zz99("yy99 zz99", vec![BoardPosition::new(674, 98), BoardPosition::new(701, 98)]),
+	test_parse_move_aaa99_aaa99("aaa99 aaa99", vec![BoardPosition::new(702, 98), BoardPosition::new(702, 98)]),
+	test_parse_move_xfd13_ahh37("xfd13 ahh37", vec![BoardPosition::new(16383, 12), BoardPosition::new(891, 36)]),
+	test_parse_move_xx123_yy456_zz789("xx123 yy456 zz789", vec![BoardPosition::new(647, 122), BoardPosition::new(674, 455), BoardPosition::new(701, 788)])
 ]);
 
 }
