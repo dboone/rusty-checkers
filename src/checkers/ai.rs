@@ -150,14 +150,14 @@ fn try_jump_moves_for_man
 	jumps.jumps.push(the_move);
 }
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone)]
-struct BoardPosition {
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
+pub struct BoardPosition {
 	row : usize,
 	column : usize
 }
 
 impl BoardPosition {
-	fn new(row : usize, column : usize) -> BoardPosition {
+	pub fn new(row : usize, column : usize) -> BoardPosition {
 		BoardPosition{row : row, column : column}
 	}
 }
