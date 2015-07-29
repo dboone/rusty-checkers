@@ -1,11 +1,14 @@
 use checkers::ai::BoardPosition;
 
+#[derive(Debug)]
+#[derive(PartialEq, Eq)]
 pub enum InputError {
 	TooFewTokens,
 	InvalidTokens { tokens : Vec<TokenError> }
 }
 
 #[derive(Debug)]
+#[derive(PartialEq, Eq)]
 pub enum TokenError {
 	MissingFile { token : String },
 	MissingRank { token : String },
@@ -164,6 +167,12 @@ fn test_parse_move(the_move : &str, exp_result : Vec<BoardPosition>) {
 	assert_eq!(exp_result, result);
 }
 
+fn test_parse_move_fail(the_move : &str, exp_result : InputError ) {
+	let result = parse_move(the_move).err().unwrap();
+	
+	assert_eq!(exp_result, result);
+}
+
 ptest!(test_parse_move[
 	test_parse_move_a1_a1("a1 a1", vec![BoardPosition::new(0, 0), BoardPosition::new(0, 0)]),
 	test_parse_move_a2_a1("a2 a1", vec![BoardPosition::new(0, 1), BoardPosition::new(0, 0)]),
@@ -178,4 +187,49 @@ ptest!(test_parse_move[
 	test_parse_move_xx123_yy456_zz789("xx123 yy456 zz789", vec![BoardPosition::new(647, 122), BoardPosition::new(674, 455), BoardPosition::new(701, 788)])
 ]);
 
+ptest!(test_parse_move_fail[
+	test_parse_move_fail_too_few_tokens_a1("a1", InputError::TooFewTokens),
+	test_parse_move_fail_too_few_tokens_z9("z9", InputError::TooFewTokens),
+
+	test_parse_move_fail_missing_rank_a1_a("a1 a",
+		InputError::InvalidTokens {
+			tokens : vec![TokenError::MissingRank {
+				token : "a".to_string() } ] }),
+
+	test_parse_move_fail_missing_file_a1_1("a1 1",
+		InputError::InvalidTokens {
+			tokens : vec![TokenError::MissingFile {
+				token : "1".to_string() } ] }),
+
+	test_parse_move_fail_missing_rank_file_a_1("a 1",
+		InputError::InvalidTokens {
+			tokens : vec![
+				TokenError::MissingRank {
+					token : "a".to_string() },
+				TokenError::MissingFile {
+					token : "1".to_string() } ] }),
+
+	test_parse_move_fail_zero_rank("a1 a0", 
+		InputError::InvalidTokens {
+			tokens : vec![
+				TokenError::ZeroRank {
+					token : "a0".to_string() } ] }),
+
+	test_parse_move_fail_invalid_character("a1 a$",
+		InputError::InvalidTokens {
+			tokens : vec![
+				TokenError::InvalidCharacter {
+					token : "a$".to_string(),
+					char_index : 1 } ] }),
+
+	test_parse_move_fail_invalid_characters("#1 a$",
+		InputError::InvalidTokens {
+			tokens : vec![
+				TokenError::InvalidCharacter {
+					token : "#1".to_string(),
+					char_index : 0 },
+				TokenError::InvalidCharacter {
+					token : "a$".to_string(),
+					char_index : 1 } ] })
+]);
 }
