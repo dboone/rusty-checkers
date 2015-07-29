@@ -188,6 +188,7 @@ ptest!(test_parse_move[
 ]);
 
 ptest!(test_parse_move_fail[
+	test_parse_move_fail_too_few_tokens_empty("", InputError::TooFewTokens),
 	test_parse_move_fail_too_few_tokens_a1("a1", InputError::TooFewTokens),
 	test_parse_move_fail_too_few_tokens_z9("z9", InputError::TooFewTokens),
 
