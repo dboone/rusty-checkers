@@ -1,14 +1,12 @@
 use checkers::ai::BoardPosition;
 
-#[derive(Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum InputError {
 	TooFewTokens,
 	InvalidTokens { tokens : Vec<TokenError> }
 }
 
-#[derive(Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum TokenError {
 	MissingFile { token : String },
 	MissingRank { token : String },
