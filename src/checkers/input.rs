@@ -167,12 +167,6 @@ fn test_parse_move(the_move : &str, exp_result : Vec<BoardPosition>) {
 	assert_eq!(exp_result, result);
 }
 
-fn test_parse_move_fail(the_move : &str, exp_result : InputError ) {
-	let result = parse_move(the_move).err().unwrap();
-	
-	assert_eq!(exp_result, result);
-}
-
 ptest!(test_parse_move[
 	test_parse_move_a1_a1("a1 a1", vec![BoardPosition::new(0, 0), BoardPosition::new(0, 0)]),
 	test_parse_move_a2_a1("a2 a1", vec![BoardPosition::new(0, 1), BoardPosition::new(0, 0)]),
@@ -186,6 +180,12 @@ ptest!(test_parse_move[
 	test_parse_move_xfd13_ahh37("xfd13 ahh37", vec![BoardPosition::new(16383, 12), BoardPosition::new(891, 36)]),
 	test_parse_move_xx123_yy456_zz789("xx123 yy456 zz789", vec![BoardPosition::new(647, 122), BoardPosition::new(674, 455), BoardPosition::new(701, 788)])
 ]);
+
+fn test_parse_move_fail(the_move : &str, exp_result : InputError ) {
+	let result = parse_move(the_move).err().unwrap();
+	
+	assert_eq!(exp_result, result);
+}
 
 ptest!(test_parse_move_fail[
 	test_parse_move_fail_too_few_tokens_empty("", InputError::TooFewTokens),
