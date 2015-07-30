@@ -274,7 +274,7 @@ impl Game {
 		if jump_valid {
 			let start_position = the_move.first().unwrap();
 			let final_position = the_move.last().unwrap();
-			
+
 			// move the jumping piece
 			self.board.swap_tiles(
 				start_position.row,
@@ -285,8 +285,8 @@ impl Game {
 			// remove all jumped pieces
 			let iter = the_move[0..].iter().zip(the_move[1..].iter());
 			for (jump_from_pos, jump_to_pos) in iter {
-				let jumped_row = jump_from_pos.row + jump_to_pos.row / 2;
-				let jumped_col = jump_from_pos.column + jump_to_pos.column / 2;
+				let jumped_row = (jump_from_pos.row + jump_to_pos.row) / 2;
+				let jumped_col = (jump_from_pos.column + jump_to_pos.column) / 2;
 				self.board.clear_tile(jumped_row, jumped_col);
 			}
 
@@ -304,10 +304,11 @@ mod test {
 	use super::*;
 	
 	use checkers::BoardPosition;
+	use checkers::PieceType;
 	use checkers::SimpleMove;
 
 	#[test]
-	fn test_good_simple_move() {
+	fn good_simple_move() {
 		let mut game = Game::new();
 		let result = game.apply_simple_move(SimpleMove::new(2, 0, 3, 1));
 		let exp_result : Result<GameState, MoveError> = Ok(GameState::InProgress);
@@ -322,7 +323,7 @@ mod test {
 	}
 	
 	#[test]
-	fn test_bad_simple_move() {
+	fn bad_simple_move() {
 		let mut game = Game::new();
 		let result = game.apply_simple_move(SimpleMove::new(2, 0, 3, 0));
 		let exp_result : Result<GameState, MoveError> = Err(MoveError::InvalidMove);
@@ -337,7 +338,56 @@ mod test {
 	}
 	
 	#[test]
-	fn test_bad_jump_move() {
+	fn good_single_jump_move() {
+		let mut game = Game::with_piece_positions(
+			vec![BoardPosition::new(3, 3)],
+			vec![BoardPosition::new(4, 4), BoardPosition::new(2, 2)]);
+		
+		let result = game.apply_jump_move(
+			vec![BoardPosition::new(3, 3), BoardPosition::new(5, 5)]);
+		let exp_result : Result<GameState, MoveError> = Ok(GameState::InProgress);
+		assert_eq!(exp_result, result);
+		
+		let jumped_piece = game.board().get_tile(4, 4).get_piece();
+		assert!(jumped_piece.is_none());
+		
+		let jumping_piece = game.board().get_tile(5, 5).get_piece();
+		//TODO this test should be more thorough (e.g. check the piece
+		// type, player ID, etc.), but it's good enough for now
+		assert!(jumping_piece.is_some());
+	}
+	
+	#[test]
+	fn good_multi_jump_move() {
+		let mut game = Game::with_piece_positions(
+			vec![BoardPosition::new(3, 3)],
+			vec![
+				BoardPosition::new(4, 4),
+				BoardPosition::new(6, 4),
+				BoardPosition::new(2, 2)]);
+		
+		let result = game.apply_jump_move(
+			vec![
+				BoardPosition::new(3, 3),
+				BoardPosition::new(5, 5),
+				BoardPosition::new(7, 3)]);
+		let exp_result : Result<GameState, MoveError> = Ok(GameState::InProgress);
+		assert_eq!(exp_result, result);
+		
+		let jumped_piece1 = game.board().get_tile(4, 4).get_piece();
+		assert!(jumped_piece1.is_none());
+		
+		let jumped_piece2 = game.board().get_tile(6, 4).get_piece();
+		assert!(jumped_piece2.is_none());
+		
+		let jumping_piece = game.board().get_tile(7, 3).get_piece();
+		//TODO this test should be more thorough (e.g. check the piece
+		// type, player ID, etc.), but it's good enough for now
+		assert!(jumping_piece.is_some());
+	}
+	
+	#[test]
+	fn bad_jump_move() {
 		let mut game = Game::new();
 		let result = game.apply_jump_move(
 			vec![BoardPosition::new(2, 0), BoardPosition::new(4, 2)]);
@@ -353,11 +403,58 @@ mod test {
 		assert!(game.board().get_tile(4, 2).get_piece().is_none());
 	}
 	
-	//TODO test applying a simple move when a jump is available
+	#[test]
+	fn not_jumping_when_jump_available() {
+		let mut game = Game::with_piece_positions(
+			vec![BoardPosition::new(3, 3)],
+			vec![BoardPosition::new(4, 4)]);
+		
+		let result = game.apply_simple_move(SimpleMove::new(3, 3, 4, 2));
+		let exp_result : Result<GameState, MoveError> = Err(MoveError::ShouldHaveJumped);
+		assert_eq!(exp_result, result);
+	}
 	
-	//TODO test that coronation works
+	#[test]
+	fn player1_coronation() {
+		let mut game = Game::with_piece_positions(
+			vec![BoardPosition::new(6, 5)],
+			vec![BoardPosition::new(1, 1)]);
+		
+		let result = game.apply_simple_move(SimpleMove::new(6, 5, 7, 4));
+		let exp_result : Result<GameState, MoveError> = Ok(GameState::InProgress);
+		assert_eq!(exp_result, result);
+		
+		let piece_type = game.board().get_tile(7, 4).get_piece().unwrap().get_type();
+		match piece_type {
+			PieceType::King => {},
+			_ => panic!("Expected piece to be a King"),
+		}
+	}
 	
-	//TODO test that game over is correctly detected
+	#[test]
+	fn player2_coronation() {
+		let mut game = Game::with_piece_positions(
+			vec![BoardPosition::new(4, 4)],
+			vec![BoardPosition::new(1, 1)]);
+		
+		game.apply_simple_move(SimpleMove::new(4, 4, 5, 5)).unwrap();
+		game.apply_simple_move(SimpleMove::new(1, 1, 0, 0)).unwrap();
+		
+		let piece_type = game.board().get_tile(0, 0).get_piece().unwrap().get_type();
+		match piece_type {
+			PieceType::King => {},
+			_ => panic!("Expected piece to be a King"),
+		}
+	}
 	
-	//TODO test applying a good jump move
+	#[test]
+	fn game_over_when_no_moves_for_current_player() {
+		let mut game = Game::with_piece_positions(
+			vec![BoardPosition::new(4, 4)],
+			vec![]);
+		
+		let result = game.apply_simple_move(SimpleMove::new(4, 4, 5, 5));
+		let exp_result : Result<GameState, MoveError> = Ok(GameState::GameOver);
+		assert_eq!(exp_result, result);
+	}
 }
