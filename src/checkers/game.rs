@@ -5,12 +5,11 @@ use checkers::BoardPosition;
 use checkers::Direction;
 use checkers::JumpMove;
 use checkers::KingPiece;
+use checkers::ManPiece;
 use checkers::OccupiedTile;
 use checkers::PieceType;
 use checkers::Player;
 use checkers::SimpleMove;
-
-use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum GameState {
@@ -41,11 +40,59 @@ pub struct Game {
 
 impl Game {
 	pub fn new() -> Game {
-		let player1 = Player{id : 1};
-		let player2 = Player{id : 2};
+		let (player1, player2) = Game::two_players();
 		
 		let board = Board::new_checkerboard(&player1, &player2);
 		
+		Game::with_board_and_players(board, player1, player2)
+	}
+	
+	/// Creates a new Checkers game with an 8x8 board and the specified piece
+	/// layout `player1_positions` contains the pieces for the first player,
+	/// and `player2_positions` contains the pieces for the second player. All
+	/// pieces are initially `ManPiece`s.
+	///
+	/// # Panics
+	///
+	/// Panics if any element in *player1_positions* or *player2_positions*
+	/// is a `BoardPosition` with a row or column outside the range [0, 7].
+	/// Also panics if any two positions are exactly the same.
+	#[cfg(test)]
+	pub fn with_piece_positions
+	(player1_positions : Vec<BoardPosition>,
+			player2_positions : Vec<BoardPosition>)
+	-> Game {
+		let CHECKERBOARD_SIZE : usize = 8;
+		let mut board = Board::new(CHECKERBOARD_SIZE, CHECKERBOARD_SIZE);
+		
+		let (player1, player2) = Game::two_players();
+		
+		Game::initialize_pieces(&mut board, &player1, &player1_positions);
+		Game::initialize_pieces(&mut board, &player2, &player2_positions);
+		
+		Game::with_board_and_players(board, player1, player2)
+	}
+	
+	// creates and returns two players with distinct IDs
+	fn two_players() -> (Player, Player) {
+		(Player{id : 1}, Player{id : 2})
+	}
+	
+	// adds man pieces belonging to a particular player
+	// at the specified positions on a board
+	fn initialize_pieces
+	(board : &mut Board, player : &Player, positions : &Vec<BoardPosition>) {
+		for pos in positions {
+			let piece = ManPiece::new(&player);
+			let tile = OccupiedTile::new(Box::new(piece));
+			assert!(board.get_tile(pos.row, pos.column).get_piece().is_none());
+			board.set_tile(pos.row, pos.column, Box::new(tile));
+		}
+	}
+	
+	fn with_board_and_players
+	(board : Board, player1 : Player, player2 : Player)
+	-> Game {
 		let player1_info = PlayerInfo{
 			player : player1, direction : Direction::IncreasingRank};
 		let player2_info = PlayerInfo{
