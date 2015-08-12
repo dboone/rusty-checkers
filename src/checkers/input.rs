@@ -87,7 +87,6 @@ enum ParseState {
 fn parse_file_rank(token : &str) -> Result<(String, String), TokenError> {
 	let mut file : String = String::new();
 	let mut rank : String = String::new();
-	let mut readFile = true;
 
 	let mut iter = token.chars().enumerate();
 	let mut char_opt = iter.next();
