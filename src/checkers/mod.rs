@@ -10,5 +10,8 @@ pub use checkers::piece::*;
 mod player;
 pub use checkers::player::Player;
 
+pub mod input;
+pub use checkers::input::*;
+
 pub mod tile;
 pub use checkers::tile::*;
