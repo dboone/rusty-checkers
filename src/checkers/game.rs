@@ -13,12 +13,11 @@ use checkers::SimpleMove;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum GameState {
+	/// The game has not yet finished
 	InProgress,
 	
-	//TODO include the winner in this variant
-	GameOver
-	
-	//TODO may need to include a variant for a stalemate
+	/// The game has finished. The `u32` is the ID of the winning player.
+	GameOver{ winner_id : u32 }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -221,14 +220,11 @@ impl Game {
 		self.current_player_index = 1 - self.current_player_index;
 	}
 	
-	//TODO What about draws, where neither player has moves? Do the official
-	// checkers rules specify a winner in this case?
 	fn is_game_over(&self) -> bool {
 		// This works if it is called after the available moves for the
 		// next player are computed. If this player has no moves, it means
 		// they have no pieces left, or all of their pieces are stuck.
-		// Either way, they lose (unless the other player also has no moves,
-		// in which case it is a draw)
+		// Either way, they lose.
 		self.available_simple_moves.is_empty()
 			&& self.available_jump_moves.is_empty()
 	}
@@ -242,7 +238,8 @@ impl Game {
 		self.find_available_moves();
 		
 		if self.is_game_over() {
-			GameState::GameOver
+			let winner_id = self.players[1 - self.current_player_index].player.id;
+			GameState::GameOver{winner_id : winner_id}
 		} else {
 			GameState::InProgress
 		}
@@ -454,7 +451,7 @@ mod test {
 			vec![]);
 		
 		let result = game.apply_simple_move(SimpleMove::new(4, 4, 5, 5));
-		let exp_result : Result<GameState, MoveError> = Ok(GameState::GameOver);
+		let exp_result : Result<GameState, MoveError> = Ok(GameState::GameOver{winner_id : 1});
 		assert_eq!(exp_result, result);
 	}
 }
