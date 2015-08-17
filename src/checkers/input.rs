@@ -1,4 +1,4 @@
-use checkers::ai::BoardPosition;
+use checkers::board::BoardPosition;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum InputError {

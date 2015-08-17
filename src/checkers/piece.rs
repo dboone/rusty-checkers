@@ -1,7 +1,14 @@
 use checkers::player::Player;
 
+pub enum PieceType {
+	Man,
+	King
+}
+
 pub trait Piece {
 	fn get_player_id(&self) -> u32;
+	
+	fn get_type(&self) -> PieceType;
 }
 
 pub struct ManPiece {
@@ -18,6 +25,10 @@ impl Piece for ManPiece {
 	fn get_player_id(&self) -> u32 {
 		self.player_id
 	}
+	
+	fn get_type(&self) -> PieceType {
+		PieceType::Man
+	}
 }
 
 pub struct KingPiece {
@@ -33,5 +44,9 @@ impl KingPiece {
 impl Piece for KingPiece {
 	fn get_player_id(&self) -> u32 {
 		self.player_id
+	}
+	
+	fn get_type(&self) -> PieceType {
+		PieceType::King
 	}
 }

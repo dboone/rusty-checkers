@@ -6,7 +6,7 @@ use std::char;
 
 mod checkers;
 use checkers::Board;
-use checkers::Player;
+use checkers::Game;
 
 const EMPTY_PIECE_STR : &'static str = " ";
 const OCCUPIED_PIECE_STR : &'static str = "O";
@@ -65,10 +65,8 @@ fn print_board<TWrite : Write>(writer : &mut TWrite, board : &Board) -> Result<(
 fn main() {
     println!("Welcome to Draughts!");
 
-	let player1 = Player{ id : 0 };
-	let player2 = Player{ id : 1 };
-	let board = Board::new_checkerboard(&player1, &player2);
-
+	let game = Game::new();
+	
 	let mut writer = stdout();
-	print_board(&mut writer, &board).unwrap();
+	print_board(&mut writer, game.board()).unwrap();
 }

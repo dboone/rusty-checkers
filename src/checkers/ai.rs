@@ -1,8 +1,10 @@
 use checkers::player::Player;
 use checkers::board::Board;
+use checkers::board::BoardPosition;
 
 use std::collections::HashSet;
 
+#[derive(Copy, Clone)]
 pub enum Direction {
 	/// The piece is moving such that its rank is increasing
 	IncreasingRank,
@@ -12,8 +14,7 @@ pub enum Direction {
 }
 
 // A move from one tile to an adjacent diagonal one
-#[derive(Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct SimpleMove {
 	from_row : usize,
 	from_col : usize,
@@ -34,10 +35,25 @@ impl SimpleMove {
 			to_row : to_row,
 			to_col : to_column}
 	}
+	
+	pub fn from_row(&self) -> usize {
+		self.from_row
+	}
+	
+	pub fn from_column(&self) -> usize {
+		self.from_col
+	}
+	
+	pub fn to_row(&self) -> usize {
+		self.to_row
+	}
+	
+	pub fn to_column(&self) -> usize {
+		self.to_col
+	}
 }
 
-#[derive(Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct JumpMove {
 	from_row : usize,
 	from_col : usize,
@@ -51,6 +67,35 @@ impl JumpMove {
 	
 	fn with_jumps(from_row : usize, from_col : usize, jumps : Vec<JumpMove>) -> JumpMove {
 		JumpMove{ from_row : from_row, from_col : from_col, jumps : jumps }
+	}
+	
+	pub fn from_row(&self) -> usize {
+		self.from_row
+	}
+	
+	pub fn from_column(&self) -> usize {
+		self.from_col
+	}
+	
+	pub fn jumps(&self) -> &Vec<JumpMove> {
+		&self.jumps
+	}
+	
+	pub fn contains_jump_sequence(&self, jumps : &[BoardPosition]) -> bool {
+		if jumps.len() == 0 {
+			true
+		} else {
+			self.contains_jump_sequence_recursive(jumps)
+		}
+	}
+	
+	fn contains_jump_sequence_recursive(&self, jumps : &[BoardPosition]) -> bool {
+		if jumps[0].row == self.from_row && jumps[0].column == self.from_col {
+			jumps.len() == 1 || self.jumps.iter()
+					.any(|subtree| subtree.contains_jump_sequence(&jumps[1..]))
+		} else {
+			false
+		}
 	}
 }
 
@@ -91,7 +136,7 @@ pub fn find_simple_moves_for_man
 pub fn find_jump_moves_for_man
 (board : &Board,
 		player : &Player,
-		direction : &Direction,
+		direction : Direction,
 		row : usize,
 		col : usize)
 -> JumpMove {
@@ -165,18 +210,6 @@ fn try_jump_moves_for_man
 		board, player, &pwnd_row_offset, &jump_row_offset, &mut the_move);
 
 	jumps.jumps.push(the_move);
-}
-
-#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
-pub struct BoardPosition {
-	row : usize,
-	column : usize
-}
-
-impl BoardPosition {
-	pub fn new(row : usize, column : usize) -> BoardPosition {
-		BoardPosition{row : row, column : column}
-	}
 }
 
 pub fn find_jump_moves_for_king
@@ -307,8 +340,8 @@ fn push_jump_for_king_if_valid
 	curr_jump_root.jumps.push(jump);
 }
 
-fn get_row_offsets(direction : &Direction) -> (TileOffset, TileOffset) {
-	let (pwnd_row_offset, jump_row_offset) = match *direction {
+fn get_row_offsets(direction : Direction) -> (TileOffset, TileOffset) {
+	let (pwnd_row_offset, jump_row_offset) = match direction {
 		Direction::DecreasingRank =>
 			(TileOffset::Negative(1), TileOffset::Negative(2)),
 		Direction::IncreasingRank =>
@@ -449,6 +482,131 @@ fn is_tile_offset_in_bounds
 
 #[cfg(test)]
 mod test {
+
+mod jump_tree {
+	use super::super::JumpMove;
+	use checkers::BoardPosition;
+	
+	#[test]
+	fn empty_sequence() {
+		let jump_tree = JumpMove::new(0, 0);
+		let result = jump_tree.contains_jump_sequence(&Vec::new());
+		assert_eq!(true, result);
+	}
+	
+	#[test]
+	fn single_element_sequence_matching_start_position() {
+		let jump_tree = JumpMove::new(0, 0);
+		let jumps = vec![BoardPosition::new(0, 0)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(true, result);
+	}
+	
+	#[test]
+	fn single_element_sequence_different_start_position() {
+		let jump_tree = JumpMove::new(0, 0);
+		let jumps = vec![BoardPosition::new(1, 1)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(false, result);
+	}
+	
+	#[test]
+	fn single_jump_empty_tree() {
+		let jump_tree = JumpMove::new(0, 0);
+		let jumps = vec![BoardPosition::new(0, 0), BoardPosition::new(2, 2)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(false, result);
+	}
+	
+	#[test]
+	fn single_jump_tree_containing_jump() {
+		let jump_tree = JumpMove::with_jumps(0, 0, vec![JumpMove::new(2, 2)]);
+		let jumps = vec![BoardPosition::new(0, 0), BoardPosition::new(2, 2)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(true, result);
+	}
+	
+	#[test]
+	fn single_jump_tree_missing_jump() {
+		let jump_tree = JumpMove::with_jumps(2, 2, vec![JumpMove::new(2, 0)]);
+		let jumps = vec![BoardPosition::new(2, 2), BoardPosition::new(2, 4)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(false, result);
+	}
+	
+	#[test]
+	fn branching_jump_tree_containing_jump() {
+		let jump_tree = JumpMove::with_jumps(
+			5, 5, vec![
+				JumpMove::new(3, 3),
+				JumpMove::new(3, 7),
+				JumpMove::new(7, 3),
+				JumpMove::new(7, 7)]);
+				
+		let jumps = vec![BoardPosition::new(5, 5), BoardPosition::new(7, 3)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(true, result);
+	}
+	
+	#[test]
+	fn branching_jump_tree_missing_jump() {
+		let jump_tree = JumpMove::with_jumps(
+			5, 5, vec![
+				JumpMove::new(3, 3),
+				JumpMove::new(3, 7),
+				JumpMove::new(7, 3),
+				JumpMove::new(7, 7)]);
+				
+		let jumps = vec![BoardPosition::new(5, 5), BoardPosition::new(5, 5)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(false, result);
+	}
+	
+	#[test]
+	fn multi_jump_tree_containing_single_jump() {
+		let jump_tree = JumpMove::with_jumps(
+			5, 5, vec![
+				JumpMove::with_jumps(
+					3, 3, vec![
+						JumpMove::new(1, 1)])]);
+				
+		let jumps = vec![BoardPosition::new(5, 5), BoardPosition::new(3, 3)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(true, result);
+	}
+	
+	#[test]
+	fn multi_jump_tree_missing_single_jump() {
+		let jump_tree = JumpMove::with_jumps(
+			5, 5, vec![
+				JumpMove::with_jumps(
+					3, 3, vec![
+						JumpMove::new(1, 1)])]);
+				
+		let jumps = vec![
+			BoardPosition::new(5, 5),
+			BoardPosition::new(3, 3),
+			BoardPosition::new(5, 5)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(false, result);
+	}
+	
+	#[test]
+	fn multi_jump_tree_containing_multi_jump() {
+		let jump_tree = JumpMove::with_jumps(
+			5, 5, vec![
+				JumpMove::with_jumps(
+					3, 3, vec![
+						JumpMove::new(1, 1)])]);
+		
+		let jumps = vec![
+			BoardPosition::new(5, 5),
+			BoardPosition::new(3, 3),
+			BoardPosition::new(1, 1)];
+		let result = jump_tree.contains_jump_sequence(&jumps);
+		assert_eq!(true, result);
+	}
+}
 
 mod simple_move {
 
@@ -644,7 +802,7 @@ fn test_jumping_alone
 	let direction = Direction::IncreasingRank;
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	let exp_result = JumpMove::new(start_row, start_col);
 
@@ -675,7 +833,7 @@ fn test_single_jump_single_enemy
 	board.set_tile(enemy_row, enemy_col, Box::new(enemy_tile));
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	assert_eq!(exp_result, result);
 }
@@ -711,7 +869,7 @@ fn test_single_jump_two_enemies
 	board.set_tile(right_enemy_row, right_enemy_col, Box::new(right_enemy_tile));
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	assert_eq!(exp_result, result);
 }
@@ -738,7 +896,7 @@ fn test_jumping_friendly_piece
 	board.set_tile(friendly_row, friendly_col, Box::new(left_tile));
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	let exp_result = JumpMove::new(start_row, start_col);
 
@@ -771,7 +929,7 @@ fn test_single_jump_blocked
 	board.set_tile(blocked_row, blocked_col, Box::new(block_tile));
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	let exp_result = JumpMove::new(start_row, start_col);
 
@@ -806,7 +964,7 @@ fn jumping_two_forward_adjacent_enemies_left_blocked() {
 	board.set_tile(5, 4, Box::new(right_tile));
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	let exp_result = JumpMove::with_jumps(
 		start_row, start_col, vec![JumpMove::new(6, 5)]);
@@ -837,7 +995,7 @@ fn jumping_two_forward_adjacent_enemies_right_blocked() {
 	board.set_tile(5, 4, Box::new(right_tile));
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	let exp_result = JumpMove::with_jumps(
 		start_row, start_col, vec![JumpMove::new(6, 1)]);
@@ -889,7 +1047,7 @@ fn the_one_true_test() {
 	let start_col = 3;
 
 	let result = find_jump_moves_for_man(
-		&board, &player, &direction, start_row, start_col);
+		&board, &player, direction, start_row, start_col);
 
 	let exp_result = JumpMove::with_jumps(
 		start_row,
