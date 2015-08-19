@@ -125,16 +125,14 @@ fn parse_file_rank(token : &str) -> Result<(String, String), TokenError> {
 // Convert string of alphabetic characters to an index
 //
 fn file_to_row_position(file : &str) -> usize {
-	let mut row_index : usize = 0;
-	let mut multiplier : usize = 1;
+	let mut row : usize = 0;
 	let alphabet_length = 26;
 
-	for c in file.chars().rev() {
-		row_index += multiplier * char_to_position(c);
-		multiplier *= alphabet_length;
+	for c in file.chars() {
+		row = row * alphabet_length + char_to_position(c);
 	}
 
-	row_index
+	row
 }
 
 //
