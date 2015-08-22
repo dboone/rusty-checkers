@@ -4,6 +4,8 @@ pub use checkers::ai::*;
 mod board;
 pub use checkers::board::*;
 
+pub mod display;
+
 mod game;
 pub use checkers::game::Game;
 pub use checkers::game::GameState;
