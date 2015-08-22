@@ -63,10 +63,10 @@ pub fn print_board
 				None => EMPTY_PIECE_STR,
 				Some(piece) =>
 					match (piece.get_type(), piece.get_player_id()) {
-						(PieceType::Man, 0) => RED_MAN_STR,
-						(PieceType::King, 0) => RED_KING_STR,
-						(PieceType::Man, 1) => BLACK_MAN_STR,
-						(PieceType::King, 1) => BLACK_KING_STR,
+						(PieceType::Man, 1) => RED_MAN_STR,
+						(PieceType::King, 1) => RED_KING_STR,
+						(PieceType::Man, 2) => BLACK_MAN_STR,
+						(PieceType::King, 2) => BLACK_KING_STR,
 						_ => unreachable!()
 					}
 			};
@@ -141,8 +141,8 @@ mod test {
 	fn board_with_pieces() {
 		let mut result = Vec::<u8>::new();
 			
-		let red_player = Player{id : 0};
-		let black_player = Player{id : 1};
+		let red_player = Player{id : 1};
+		let black_player = Player{id : 2};
 		
 		let mut board = Board::new(5, 3);
 		
