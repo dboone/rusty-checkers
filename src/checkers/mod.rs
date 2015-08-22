@@ -18,7 +18,7 @@ mod game;
 pub use checkers::game::{Game, GameState, MoveError};
 
 mod input;
-pub use checkers::input::parse_move;
+pub use checkers::input::{InputError, parse_move, TokenError};
 
 mod piece;
 pub use checkers::piece::{KingPiece, ManPiece, Piece, PieceType};
