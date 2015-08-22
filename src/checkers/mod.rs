@@ -11,14 +11,14 @@ pub use checkers::game::Game;
 pub use checkers::game::GameState;
 pub use checkers::game::MoveError;
 
+mod input;
+pub use checkers::input::*;
+
 mod piece;
 pub use checkers::piece::*;
 
 mod player;
 pub use checkers::player::Player;
 
-pub mod input;
-pub use checkers::input::*;
-
-pub mod tile;
+mod tile;
 pub use checkers::tile::*;
