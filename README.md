@@ -43,7 +43,7 @@ a3b4         // invalid, missing space
 
 **Must take jump**: at least one jump is available to the current player. Players are required to take jumps they are presented with. If a multi-jump is available, players are only required to make the first part of the jump. The remainder of the jump sequence is left to the player's discretion.
 
-**You must specify at least two board positions**: each move must consist of at least two board positions. See the **Moves** section above.
+**You must specify at least two board positions**: each move must consist of at least two board positions. See the [Moves](#moves) section for more information.
 ```
 > a3
 *** You must specify at least two board positions
