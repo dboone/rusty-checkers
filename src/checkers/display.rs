@@ -1,10 +1,9 @@
 extern crate std;
 
-use std::char;
-use std::io;
-use std::io::Write;
 use checkers::Board;
 use checkers::piece::PieceType;
+use std::{char, io};
+use std::io::Write;
 
 const EMPTY_PIECE_STR : &'static str = " ";
 
@@ -94,7 +93,7 @@ mod test {
 		let board = Board::new(1, 1);
 		
 		let mut result = Vec::<u8>::new();
-		print_board(&mut result, &board);
+		print_board(&mut result, &board).unwrap();
 		
 		let exp_result = "   A\n1 [ ] 1\n   A\n";
 		
@@ -106,7 +105,7 @@ mod test {
 		let board = Board::new(3, 3);
 		
 		let mut result = Vec::<u8>::new();
-		print_board(&mut result, &board);
+		print_board(&mut result, &board).unwrap();
 		
 		let exp_result = concat!(
 			"   A  B  C\n",
@@ -123,7 +122,7 @@ mod test {
 		let board = Board::new(5, 3);
 		
 		let mut result = Vec::<u8>::new();
-		print_board(&mut result, &board);
+		print_board(&mut result, &board).unwrap();
 		
 		let exp_result = concat!(
 			"   A  B  C\n",
@@ -155,7 +154,7 @@ mod test {
 		board.set_tile(0, 2, Box::new(OccupiedTile::new(Box::new(black_man))));
 		board.set_tile(4, 0, Box::new(OccupiedTile::new(Box::new(black_king))));
 		
-		print_board(&mut result, &board);
+		print_board(&mut result, &board).unwrap();
 
 		let exp_result = concat!(
 			"   A  B  C\n",

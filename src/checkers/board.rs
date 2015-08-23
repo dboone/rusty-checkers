@@ -1,10 +1,6 @@
 use checkers::piece::ManPiece;
-
 use checkers::player::Player;
-
-use checkers::tile::EmptyTile;
-use checkers::tile::OccupiedTile;
-use checkers::tile::Tile;
+use checkers::tile::{EmptyTile, OccupiedTile, Tile};
 
 #[derive(PartialEq, Eq, Debug, Hash, Copy, Clone)]
 pub struct BoardPosition {
@@ -28,6 +24,7 @@ const CHECKERBOARD_SIZE : usize = 8;
 const CHECKERS_NUMBER_TILES : usize = CHECKERBOARD_SIZE * CHECKERBOARD_SIZE;
 
 impl Board {
+	#[cfg(test)]
     pub fn new(number_rows : usize, number_columns : usize) -> Board {
 		let number_tiles = number_rows * number_columns;
         let mut board = Board {
