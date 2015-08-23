@@ -7,7 +7,7 @@ Checkers game implemented in Rust.
 <img align="right" src="http://imgur.com/zleHaok.gif" alt="checkers in 20 moves"/>
 
 ### Game Play
-The game play consists of each player entering moves until an end game state is reached. The game can be quit at any time by entering `q` or `Q` instead of a move.
+The game play consists of each player entering moves until an [end game state](#winning) is reached. The game can be quit at any time by entering `q` or `Q` instead of a move.
 
 ### Board
 The board is a regulation 8 by 8 checkers boad. The tiles are indexed using File and Rank. The board is labeled with File `A` through `H`, and Rank `1` through `8`, with board position `A1` in the lower left-hand corner of the board. Files are case insensitive, e.g. File `B` is the same as `b`. Board positions must consist of File *then* Rank.
@@ -79,3 +79,12 @@ a3b4         // invalid, missing space
 > a3 b4
 [OK]
 ```
+
+### Winning
+
+The game is over when the current player has no moves remaining. This could be because:
+
+ * All of their pieces have been captured
+ * All of their pieces are blocked from moving
+
+In either case, the winner is the player that last moved. So, if it is Black's turn, and Black has no more pieces remaining, then Red wins.
