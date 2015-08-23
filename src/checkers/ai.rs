@@ -1,7 +1,5 @@
 use checkers::player::Player;
-use checkers::board::Board;
-use checkers::board::BoardPosition;
-
+use checkers::board::{Board, BoardPosition};
 use std::collections::HashSet;
 
 #[derive(Copy, Clone)]
@@ -65,16 +63,9 @@ impl JumpMove {
 		JumpMove{ from_row : from_row, from_col : from_col, jumps : Vec::new() }
 	}
 	
+	#[cfg(test)]
 	fn with_jumps(from_row : usize, from_col : usize, jumps : Vec<JumpMove>) -> JumpMove {
 		JumpMove{ from_row : from_row, from_col : from_col, jumps : jumps }
-	}
-	
-	pub fn from_row(&self) -> usize {
-		self.from_row
-	}
-	
-	pub fn from_column(&self) -> usize {
-		self.from_col
 	}
 	
 	pub fn jumps(&self) -> &Vec<JumpMove> {
@@ -797,7 +788,7 @@ use checkers::Player;
 
 fn test_jumping_alone
 (start_row : usize, start_col : usize) {
-	let mut board = Board::new(8, 8);
+	let board = Board::new(8, 8);
 	let player = Player{ id : 0 };
 	let direction = Direction::IncreasingRank;
 

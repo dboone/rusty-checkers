@@ -1,15 +1,19 @@
-use checkers::ai;
+// Need the following import statement for compiling
+// the tests but not for compiling the application.
+#[allow(unused_imports)]
+use checkers;
 
-use checkers::Board;
-use checkers::BoardPosition;
-use checkers::Direction;
-use checkers::JumpMove;
-use checkers::KingPiece;
-use checkers::ManPiece;
-use checkers::OccupiedTile;
-use checkers::PieceType;
-use checkers::Player;
-use checkers::SimpleMove;
+use checkers::{
+	ai,
+	Board,
+	BoardPosition,
+	Direction,
+	JumpMove,
+	KingPiece,
+	OccupiedTile,
+	PieceType,
+	Player,
+	SimpleMove};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum GameState {
@@ -43,7 +47,7 @@ pub struct Game {
 
 impl Game {
 	pub fn new() -> Game {
-		let (player1, player2) = Game::two_players();
+		let (player1, player2) = Game::create_two_players();
 		
 		let board = Board::new_checkerboard(&player1, &player2);
 		
@@ -65,10 +69,10 @@ impl Game {
 	(player1_positions : Vec<BoardPosition>,
 			player2_positions : Vec<BoardPosition>)
 	-> Game {
-		let CHECKERBOARD_SIZE : usize = 8;
-		let mut board = Board::new(CHECKERBOARD_SIZE, CHECKERBOARD_SIZE);
+		let checkerboard_size : usize = 8;
+		let mut board = Board::new(checkerboard_size, checkerboard_size);
 		
-		let (player1, player2) = Game::two_players();
+		let (player1, player2) = Game::create_two_players();
 		
 		Game::initialize_pieces(&mut board, &player1, &player1_positions);
 		Game::initialize_pieces(&mut board, &player2, &player2_positions);
@@ -77,16 +81,17 @@ impl Game {
 	}
 	
 	// creates and returns two players with distinct IDs
-	fn two_players() -> (Player, Player) {
+	fn create_two_players() -> (Player, Player) {
 		(Player{id : 1}, Player{id : 2})
 	}
 	
 	// adds man pieces belonging to a particular player
 	// at the specified positions on a board
+	#[cfg(test)]
 	fn initialize_pieces
 	(board : &mut Board, player : &Player, positions : &Vec<BoardPosition>) {
 		for pos in positions {
-			let piece = ManPiece::new(&player);
+			let piece = checkers::ManPiece::new(&player);
 			let tile = OccupiedTile::new(Box::new(piece));
 			assert!(board.get_tile(pos.row, pos.column).get_piece().is_none());
 			board.set_tile(pos.row, pos.column, Box::new(tile));
