@@ -10,11 +10,12 @@ Checkers game implemented in Rust.
 The game play consists of each player entering moves until an end game state is reached. The game can be quit at any time by entering `q` or `Q` instead of a move.
 
 ### Board
-The board is a regulation 8 by 8 checkers boad. The tiles are indexed using File and Rank. The board is labeled with File `A` through `H` and Rank `1` through `8`, with board position `A1` in the lower lefthand corner of the board. Board positions must consist of File *then* Rank.
+The board is a regulation 8 by 8 checkers boad. The tiles are indexed using File and Rank. The board is labeled with File `A` through `H`, and Rank `1` through `8`, with board position `A1` in the lower left-hand corner of the board. Files are case insensitive, e.g. File `B` is the same as `b`. Board positions must consist of File *then* Rank.
 
 ```
 a3     // valid
 h6     // valid
+H6     // valid
 
 3a     // invalid, file must be first
 6h     // invalid, file must be first
